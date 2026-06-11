@@ -1,0 +1,56 @@
+#include "Window.h"
+#include <iostream>
+
+Window::Window(const std::string& title, int width, int height):
+	m_title(title), m_width(width), m_height(height)
+{
+	if(!glfwInit())
+	{
+		std::cerr << "Failed to initialize GLFW" << std::endl;
+	}
+
+	m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+
+	if(!m_window)
+	{
+		std::cerr << "Failed to create GLFW window" << std::endl;
+		glfwTerminate();
+		return;
+	}
+
+	glfwMakeContextCurrent(m_window);
+
+	std::cout << "Window Created Title" << "width"<< width << std::endl;
+}
+
+Window::~Window()
+{
+	glfwDestroyWindow(m_window);
+	glfwTerminate();
+	std::cout << "Window Destroyed Title" << m_title << std::endl;
+}
+
+void Window::PoolEvents()
+{
+	glfwPollEvents();
+	// Futuramente Glfw / SDL / WinAPI
+}
+
+void Window::SwapBuffers()
+{
+	glfwSwapBuffers(m_window);
+}
+
+bool Window::ShouldClose() const
+{
+	return glfwWindowShouldClose(m_window);
+}
+
+int Window::GetWidth() const
+{
+	return m_width;
+}
+int Window::GetHeight() const
+{
+	return m_height;
+}
