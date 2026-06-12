@@ -6,6 +6,8 @@
 #include "DirectionalLight.h"
 #include "AmbienteLight.h"
 
+struct RenderContext;
+
 class App
 {
 public:
@@ -21,6 +23,7 @@ private:
 	DirectionalLight m_directionalLight;
 	AmbienteLight m_ambienteLight;
 
+	void Init();
 	void ProcessInput();
 	void Update(float dt);
 	void FixedUpdate();

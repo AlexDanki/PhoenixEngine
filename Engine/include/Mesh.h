@@ -10,6 +10,7 @@ public:
 	void CreateTriangle();
 	void CreateQuad();
 	void CreateCube();
+	void CreatePlane();
 
 	void UploadToGPU();
 

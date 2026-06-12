@@ -124,6 +124,25 @@ void Mesh::CreateCube()
 	UploadToGPU();
 }
 
+void Mesh::CreatePlane()
+{
+	m_vertices =
+	{
+		{glm::vec3{-10.0f,  0.0f, -10.0f}, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2(0,1)},
+		{glm::vec3{-10.0f,  0.0f,  10.0f}, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2(1,1)},
+		{glm::vec3{ 10.0f,  0.0f,  10.0f}, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2(1,0)},
+		{glm::vec3{ 10.0f,  0.0f, -10.0f}, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2(0,0)},
+	};
+
+	m_indices =
+	{
+		0, 1, 2,
+		0, 2, 3
+	};
+
+	UploadToGPU();
+}
+
 void Mesh::UploadToGPU()
 {
 	glGenVertexArrays(1, &m_VAO);

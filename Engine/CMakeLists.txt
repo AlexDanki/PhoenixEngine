@@ -1,6 +1,6 @@
 add_library(PhoenixEngine STATIC)
 
-target_sources(PhoenixEngine PRIVATE  "src/Window.cpp" "src/Renderer.cpp" "include/Mesh.h" "src/Mesh.cpp" "src/Transform.cpp"  "src/GameObject.cpp" "include/Scene.h" "src/Scene.cpp" "include/Component.h" "src/Component.cpp" "include/MeshComponent.h" "src/MeshComponent.cpp" "include/App.h" "src/App.cpp" "include/Camera.h" "src/Camera.cpp" "include/Vertex.h" "include/DirectionalLight.h" "include/AmbienteLight.h" "include/RenderData.h" "include/Texture.h" "src/Texture.cpp")
+target_sources(PhoenixEngine PRIVATE  "src/Window.cpp" "src/Renderer.cpp" "include/Mesh.h" "src/Mesh.cpp" "src/Transform.cpp"  "src/GameObject.cpp" "include/Scene.h" "src/Scene.cpp" "include/Component.h" "src/Component.cpp" "include/MeshComponent.h" "src/MeshComponent.cpp" "include/App.h" "src/App.cpp" "include/Camera.h" "src/Camera.cpp" "include/Vertex.h" "include/DirectionalLight.h" "include/AmbienteLight.h" "include/RenderContext.h" "include/Texture.h" "src/Texture.cpp" "include/Material.h" "src/Material.cpp" "include/Shader.h" "src/Shader.cpp" "include/AssetManager.h" "src/AssetManager.cpp")
 
 target_include_directories(PhoenixEngine PUBLIC	include)
 
