@@ -6,15 +6,24 @@
 #include <type_traits>
 #include "Component.h"
 
+enum class ObjectType
+{
+	Plane,
+	Cube,
+};
+
 class GameObject
 {
 public:
-	GameObject(const std::string& name);
+	GameObject(const std::string& name, ObjectType type);
 
 	const std::string GetName() const;
+	void SetName(const std::string& name) { m_name = name; }
 
 	Transform& GetTransform();
 	const Transform& GetTransform() const;
+
+	ObjectType GetType() const;
 
 	void AddComponent(std::unique_ptr<Component> component);
 
@@ -75,5 +84,6 @@ public:
 private:
 	std::string m_name;
 	Transform m_transform;
+	ObjectType m_type;
 	std::vector<std::unique_ptr<Component>> m_components;
 };

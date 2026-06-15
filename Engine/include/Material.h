@@ -12,9 +12,11 @@ public:
 	void SetTexture(Texture* texture);
 	Texture* GetTexture() const;
 
+	void SetShader(Shader* shader) { m_shader = shader; };
 	Shader* GetShader() const;
 
 	glm::vec3 GetMaterialColor() const;
+	glm::vec3& GetMaterialColor();
 	void SetMaterialColor(const glm::vec3& color);
 
 private:

@@ -24,6 +24,11 @@ glm::vec3 Material::GetMaterialColor() const
 	return m_color;
 }
 
+glm::vec3& Material::GetMaterialColor()
+{
+	return m_color;
+}
+
 void Material::SetMaterialColor(const glm::vec3& color)
 {
 	m_color = color;

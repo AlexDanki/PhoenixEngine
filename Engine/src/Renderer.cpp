@@ -12,9 +12,30 @@
 #include "AmbienteLight.h"
 #include "iostream";
 #include "RenderContext.h"
+#include "Shader.h"
 
 void Renderer::Init()
 {
+
+    glGenVertexArrays(1, &m_lineVAO);
+    glGenBuffers(1, &m_lineVBO);
+
+    glBindVertexArray(m_lineVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_lineVBO);
+
+    glBufferData(GL_ARRAY_BUFFER, 6*sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(float) * 3,
+        (void*)0
+    );
+
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
     
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -31,9 +52,32 @@ void Renderer::Clear()
 
 void Renderer::DrawMesh(const Mesh& mesh, Shader* shader)
 {
-    glUseProgram(shader->GetProgram());
+    shader->Use();
     glBindVertexArray(mesh.GetVAO());
     glDrawElements(GL_TRIANGLES, mesh.GetIndexCount(), GL_UNSIGNED_INT, nullptr);
+}
+
+void Renderer::DrawLine(glm::vec3& start, glm::vec3& end, glm::vec3& color, glm::mat4& viewProjectionMatrix)
+{
+    const float vertices[] =
+    {
+        start.x, start.y, start.z,
+        end.x, end.y, end.z
+    };
+
+    glBindVertexArray(m_lineVAO);
+    glBindBuffer(
+        GL_ARRAY_BUFFER,
+        m_lineVBO
+    );
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
+    m_lineShader->Use();
+    glUniformMatrix4fv(m_lineShader->GetViewProjectionLocation(), 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
+    glUniform3f(m_lineShader->GetColorLocation(), color.x, color.y, color.z);
+    glBindVertexArray(m_lineVAO);
+    glDrawArrays(GL_LINES, 0, 2);
+
 }
 
 void Renderer::DrawGameObject(const GameObject& object, RenderContext& renderContext)
@@ -56,11 +100,11 @@ void Renderer::DrawGameObject(const GameObject& object, RenderContext& renderCon
 
     Shader* shader = material->GetShader();
 
-    glUseProgram(shader->GetProgram());
+    shader->Use();
 
     SendViewProjection(shader, renderContext.camera, renderContext.aspectRatio);
-    SendDirectionalLight(shader, renderContext.dirLight);
-    SendAmbineteLight(shader, renderContext.ambienteLight);
+    SendDirectionalLight(shader, renderContext.scene.GetDirectionalLight());
+    SendAmbineteLight(shader, renderContext.scene.GetAmbienteLight());
     SendModelMatrix(shader, object);
 
     glUniform3fv(shader->GetMaterialColorLocation(), 1, glm::value_ptr(material->GetMaterialColor()));
@@ -73,10 +117,6 @@ void Renderer::DrawGameObject(const GameObject& object, RenderContext& renderCon
 
 void Renderer::DrawScene(RenderContext& renderContext)
 {
-
-    /*glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_texture.GetID());*/
-
     for (const auto& gameObject : renderContext.scene.GetGameObjects())
     {
         DrawGameObject(*gameObject, renderContext);
@@ -96,26 +136,18 @@ void Renderer::SendViewProjection(Shader* shader, const Camera& camera, const fl
     glm::mat4 projection = camera.GetProjectionMatrix(aspectRatio);
     glm::mat4 viewProjection = projection * view;
 
-    //GLint uniformLoc = glGetUniformLocation(m_shader.GetProgram(), "u_ViewProjection");
     glUniformMatrix4fv(shader->GetViewProjectionLocation(), 1, GL_FALSE, glm::value_ptr(viewProjection));
 }
 
 void Renderer::SendDirectionalLight(Shader* shader, const DirectionalLight& dirLight)
 {
-    GLuint directionalLightLoc = glGetUniformLocation(shader->GetProgram(), "u_sun.Direction");
-    glUniform3fv(directionalLightLoc, 1, glm::value_ptr(dirLight.Direction));
-
-    GLuint LightColorLoc = glGetUniformLocation(shader->GetProgram(), "u_sun.Color");
-    glUniform3fv(LightColorLoc, 1, glm::value_ptr(dirLight.Color));
-
-    GLuint LightIntensityLoc = glGetUniformLocation(shader->GetProgram(), "u_sun.Intensity");
-    glUniform1f(LightIntensityLoc, dirLight.Intensity);
+    glUniform3fv(shader->GetDirectionalLightLocation(), 1, glm::value_ptr(dirLight.Direction));
+    glUniform3fv(shader->GetDirectionalLightColorLocation(), 1, glm::value_ptr(dirLight.Color));
+    glUniform1f(shader->GetDirectionalLightIntensityLocation(), dirLight.Intensity);
 }
 
 void Renderer::SendAmbineteLight(Shader* shader, const AmbienteLight& ambineteLight)
 {
-    GLuint ambinetColorLoc = glGetUniformLocation(shader->GetProgram(), "u_AmbienteColor");
-    glUniform3fv(ambinetColorLoc, 1, glm::value_ptr(ambineteLight.Color));
-    GLuint ambinetIntensityLoc = glGetUniformLocation(shader->GetProgram(), "u_AmbienteIntensity");
-    glUniform1f(ambinetIntensityLoc, ambineteLight.Intensity);
+    glUniform3fv(shader->GetAmbineteColorLocation(), 1, glm::value_ptr(ambineteLight.Color));
+    glUniform1f(shader->GetAmbineteIntensityLocation(), ambineteLight.Intensity);
 }

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include "GameObject.h"
+#include "DirectionalLight.h"
+#include "AmbienteLight.h"
 
 //class GameObject;
 
@@ -11,11 +13,22 @@ class Scene
 {
 public:
 
-	GameObject& CreateGameObject(const std::string& name);
+	GameObject& CreateGameObject(const std::string& name, ObjectType type);
+
+	void RemoveGameObject(GameObject* gameObject);
 
 	const std::vector<std::unique_ptr<GameObject>>& GetGameObjects() const;
+
+	std::string GenerateUniqueName(const std::string& baseName);
+
+	DirectionalLight& GetDirectionalLight() { return m_directionalLight; }
+	const DirectionalLight& GetDirectionalLight() const{ return m_directionalLight; }
+	AmbienteLight& GetAmbienteLight()  { return m_ambienteLight; }
+	const AmbienteLight& GetAmbienteLight()  const { return m_ambienteLight; }
 
 private:
 	std::vector<std::unique_ptr<GameObject>> m_gameObjects;
 
+	DirectionalLight m_directionalLight;
+	AmbienteLight m_ambienteLight;
 };

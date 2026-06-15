@@ -9,7 +9,13 @@ Window::Window(const std::string& title, int width, int height):
 		std::cerr << "Failed to initialize GLFW" << std::endl;
 	}
 
+	//glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 	m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+
+	// Centralizar
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	glfwSetWindowPos(m_window, (mode->width - width) / 2, (mode->height - height) / 2);
 
 	if(!m_window)
 	{

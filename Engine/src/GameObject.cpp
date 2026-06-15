@@ -2,8 +2,9 @@
 #include "GameObject.h"
 
 
-GameObject::GameObject(const std::string& name)
-	:m_name(name)
+GameObject::GameObject(const std::string& name, ObjectType type)
+	:m_name(name),
+	m_type(type)
 {
 
 }
@@ -27,4 +28,9 @@ void GameObject::AddComponent(std::unique_ptr<Component> component)
 {
 	component->SetOwner(this);
 	m_components.push_back(std::move(component));
+}
+
+ObjectType GameObject::GetType() const
+{
+	return m_type;
 }

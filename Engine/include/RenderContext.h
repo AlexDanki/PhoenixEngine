@@ -9,7 +9,5 @@ struct RenderContext
 {
 	Scene& scene;
 	Camera& camera;
-	DirectionalLight& dirLight;
-	AmbienteLight& ambienteLight;
 	float aspectRatio;
 };

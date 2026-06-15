@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include "Texture.h"
 #include "Shader.h"
+#include "AssetManager.h"
 
 class Mesh;
 class Scene;
@@ -21,6 +22,9 @@ public:
 	void DrawMesh(const Mesh& mesh, Shader* shader);
 	void DrawGameObject(const GameObject& object, RenderContext& renderContext);
 	void DrawScene(RenderContext& renderContext);
+	void DrawLine(glm::vec3& start, glm::vec3& end, glm::vec3& color, glm::mat4& viewProjection);
+
+	void SetLineShader(Shader* shader) { m_lineShader = shader; }
 
 private:
 
@@ -29,4 +33,7 @@ private:
 	void SendDirectionalLight(Shader* shader, const DirectionalLight& dirLight);
 	void SendAmbineteLight(Shader* shader, const AmbienteLight& ambineteLight);
 
+	Shader* m_lineShader;
+	unsigned int m_lineVBO;
+	unsigned int m_lineVAO;
 };
