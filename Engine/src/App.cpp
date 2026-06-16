@@ -11,6 +11,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <glm/gtc/type_ptr.inl>
+#include "OBJLoader.h"
 
 namespace ui = ImGui;
 
@@ -18,7 +19,9 @@ void InterfaceImGui();
 
 void App::Run()
 {
-	
+
+	//OBJLoader::Loader("Models/Et.obj", glm::vec3(0,0,0), glm::vec3(0, 0, 0));
+
 	std::cout << "Engine Started" << std::endl;
 
 	// Inicializa funções do OpenGL
@@ -52,7 +55,7 @@ void App::Run()
 	
 
 	// Configura Material 02
-	m_defaultTexture = m_assetManager.LoadTexture("Textures/DefaultTex.png");
+	m_defaultTexture = m_assetManager.LoadTexture("Textures/ETImg.png");
 	if (!m_defaultTexture)
 	{
 		std::cout << "Erro ao carregar textura: AreiaTex" << std::endl;
@@ -69,7 +72,8 @@ void App::Run()
 
 	
 	// Mesh
-	m_cubeMash.CreateCube();
+	//m_cubeMash.CreateCube();
+	m_cubeMash.CreateObjectFromFile("Models/Et.obj");
 	// Material
 	Material cubeMaterial(m_litShader);
 	cubeMaterial.SetTexture(m_defaultTexture);
@@ -270,8 +274,8 @@ void App::Run()
 			m_selectedObject->GetTransform().position.y + 3,
 			m_selectedObject->GetTransform().position.z);
 
-		m_renderer.DrawLine(start, end, glm::vec3(0.0, 1.0, 0.0), m_camera.GetViewProjectionMatrix(aspect));
-		
+		//m_renderer.DrawLine(start, end, glm::vec3(0.0, 1.0, 0.0), m_camera.GetViewProjectionMatrix(aspect));
+		m_renderer.DrawTransformGizmos(*m_selectedObject, m_camera, aspect);
 
 		// Final do frame ImGui
 		ImGui::Render();

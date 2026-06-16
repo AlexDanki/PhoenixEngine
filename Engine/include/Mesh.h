@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 struct Vertex;
 class Mesh
 {
@@ -11,6 +12,8 @@ public:
 	void CreateQuad();
 	void CreateCube();
 	void CreatePlane();
+
+	void CreateObjectFromFile(const std::string& path);
 
 	void UploadToGPU();
 

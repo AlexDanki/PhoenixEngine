@@ -25,14 +25,23 @@ bool Texture::LoadFromFile(const std::string& path)
         return false;
     }
 
+    GLenum format = GL_RGB;
+
+    if (channels == 1)
+        format = GL_RED;
+    else if (channels == 3)
+        format = GL_RGB;
+    else if (channels == 4)
+        format = GL_RGBA;
+
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
-        GL_RGB,
+        format,
         width,
         height,
         0,
-        GL_RGB,
+        format,
         GL_UNSIGNED_BYTE,
         data
     );

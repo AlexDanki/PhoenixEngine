@@ -278,7 +278,7 @@ DirectionalLightdata SceneSerializer::LoadDirectionalLightData(const std::string
 		sceneData.direction = direction;
 		sceneData.color = color;
 		sceneData.intensity = 1.0f;
-
+		std::cout << "Não foi possível abrir arquivo Scene.txt. DirectionalLight default carregado" << std::endl;
 		return sceneData;
 	}
 
@@ -303,7 +303,6 @@ DirectionalLightdata SceneSerializer::LoadDirectionalLightData(const std::string
 
 			ss >> data.intensity;
 			sceneData = data;
-			std::cout << "Não foi possível abrir arquivo Scene.txt. DirectionalLight default carregado" << std::endl;
 			return sceneData;
 		}
 

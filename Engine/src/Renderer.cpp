@@ -123,6 +123,32 @@ void Renderer::DrawScene(RenderContext& renderContext)
     }
 }
 
+void Renderer::DrawTransformGizmos(const GameObject& object, const Camera& camera, float aspect)
+{
+    glm::vec3 position;
+    float size = 2.0;
+    glm::mat4 viewProjection = camera.GetViewProjectionMatrix(aspect);
+
+    position.x = object.GetTransform().position.x;
+    position.y = object.GetTransform().position.y;
+    position.z = object.GetTransform().position.z;
+    
+    // X axis
+    glm::vec3 xEnd = glm::vec3(size, 0.0, 0.0) + position;
+    glm::vec3 redColor(1.0, 0.0, 0.0);
+    DrawLine(position, xEnd, redColor, viewProjection);
+
+    // Y axis
+    glm::vec3 yEnd = glm::vec3(0.0, size, 0.0) + position;
+    glm::vec3 greenColor(0.0, 1.0, 0.0);
+    DrawLine(position, yEnd, greenColor, viewProjection);
+
+    // Z Axis
+    glm::vec3 zEnd = glm::vec3(0.0, 0.0, size) + position;
+    glm::vec3 blueColor(0.0, 0.0, 1.0);
+    DrawLine(position, zEnd, blueColor, viewProjection);
+}
+
 void Renderer::SendModelMatrix(Shader* shader, const GameObject& object)
 {
     glm::mat4 model = object.GetTransform().GetMatrix();

@@ -25,6 +25,7 @@ public:
 	void DrawLine(glm::vec3& start, glm::vec3& end, glm::vec3& color, glm::mat4& viewProjection);
 
 	void SetLineShader(Shader* shader) { m_lineShader = shader; }
+	void DrawTransformGizmos(const GameObject& object, const Camera& camera, float aspect);
 
 private:
 
@@ -32,6 +33,8 @@ private:
 	void SendViewProjection(Shader* shader, const Camera& camera, const float aspectRatio);
 	void SendDirectionalLight(Shader* shader, const DirectionalLight& dirLight);
 	void SendAmbineteLight(Shader* shader, const AmbienteLight& ambineteLight);
+
+	
 
 	Shader* m_lineShader;
 	unsigned int m_lineVBO;
