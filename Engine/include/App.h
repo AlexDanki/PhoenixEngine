@@ -12,15 +12,18 @@
 #include "Mesh.h"
 #include "MeshAsset.h"
 #include "BoxCollider.h"
+#include "EditorLayer.h"
 
 struct RenderContext;
-
 
 class App
 {
 public:
 	void Run();
 	const Scene& GetScene() const { return m_scene; }
+	
+	GameObject* CreateCube();
+	GameObject* CreatePlane();
 
 private:
 	bool m_isRunning = true;
@@ -30,10 +33,11 @@ private:
 	Scene m_scene;
 	Camera m_camera;
 	AssetManager m_assetManager;
-	GameObject* m_selectedObject = nullptr;
 	GameObject* m_player = nullptr;
 	GameObject* m_ground= nullptr;
 	SceneSerializer m_sceneSerializer;
+	EditorLayer m_editorLayer;
+
 	bool m_SceneSaved = false;
 	bool m_uniformTranformScale = true;
 	bool m_uniformBoxColliderSize = true;
@@ -55,9 +59,6 @@ private:
 	void Update(float dt);
 	void FixedUpdate(float dt);
 	void Render();
-
-	GameObject* CreateCube();
-	GameObject* CreatePlane();
 
 	GameObject* CreateObjectFromType(ObjectType type);
 

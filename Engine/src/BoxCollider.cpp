@@ -59,12 +59,12 @@ bool BoxCollider::Intersects(BoxCollider& other)
 glm::vec3 BoxCollider::GetMin()
 {
 	glm::vec3 worldPosition = glm::vec3(m_transform->position.x, m_transform->position.y, m_transform->position.z);
-	return min + worldPosition;
+	return min + (worldPosition + center);
 }
 
 glm::vec3 BoxCollider::GetMax()
 {
 	glm::vec3 worldPosition = glm::vec3(m_transform->position.x, m_transform->position.y, m_transform->position.z);
-	return max + worldPosition;
+	return max + (worldPosition + center);
 }
 

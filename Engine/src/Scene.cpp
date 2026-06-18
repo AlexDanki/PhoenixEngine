@@ -3,11 +3,15 @@
 #include "BoxCollider.h"
 #include <iostream>
 #include <algorithm>
+#include "ScriptComponent.h"
 
 
 void Scene::Update(float deltaTime)
 {
-
+	for (auto& object : m_gameObjects)
+	{
+		object->UpdateScripts(deltaTime);
+	}
 }
 
 void Scene::FixedUpdate(float deltaTime)

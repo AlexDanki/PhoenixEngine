@@ -1,5 +1,6 @@
 //#include "Component.h"
 #include "GameObject.h"
+#include "ScriptComponent.h"
 
 
 GameObject::GameObject(const std::string& name, ObjectType type)
@@ -17,6 +18,17 @@ const std::string GameObject::GetName() const
 Transform& GameObject::GetTransform()
 {
 	return m_transform;
+}
+
+void GameObject::UpdateScripts(float dt)
+{
+	for(auto& component : m_components)
+	{
+		if(auto script = dynamic_cast<ScriptComponent*>(component.get()))
+		{
+			script->OnUpdate(dt);
+		}
+	}
 }
 
 const Transform& GameObject::GetTransform() const

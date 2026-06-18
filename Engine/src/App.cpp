@@ -15,6 +15,7 @@
 #include "OBJLoader.h"
 #include "MeshAsset.h"
 #include "RigidbodyComponent.h"
+#include "RotatorScript.h"
 
 namespace ui = ImGui;
 
@@ -36,13 +37,15 @@ void App::Run()
 
 	// Inicializa o Render
 	m_renderer.Init();
+	GLFWwindow* window = m_window.GetNativeWindow();
+	m_editorLayer.Inity(window);
 
-	IMGUI_CHECKVERSION();
+	/*IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
-	GLFWwindow* window = m_window.GetNativeWindow();
+	
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 330");
+	ImGui_ImplOpenGL3_Init("#version 330");*/
 
 	// Cria Shader
 	m_litShader = m_assetManager.LoadShader("Shaders/Lit.vert", "Shaders/Lit.frag");
@@ -58,7 +61,7 @@ void App::Run()
 	
 
 	// Configura Material 02
-	m_defaultTexture = m_assetManager.LoadTexture("Textures/ETImg.png");
+	m_defaultTexture = m_assetManager.LoadTexture("Textures/DefaultTex.png");
 	if (!m_defaultTexture)
 	{
 		std::cout << "Erro ao carregar textura: AreiaTex" << std::endl;
@@ -143,10 +146,14 @@ void App::Run()
 	}
 
 	float saveMessageTimer = 0.0f;
-	//m_sceneSerializer.Load(m_scene, "Scene.txt");
+	
+	m_editorLayer.SetScene(&m_scene);
+	m_editorLayer.SetApp(this);
+	m_editorLayer.SetSceneScerializer(&m_sceneSerializer);
 	// Loop Princial
 	while (m_isRunning && !m_window.ShouldClose())
 	{
+
 		m_window.PoolEvents();
 		TimePoint currentTime = Clock::now();
 		std::chrono::duration<float> elapsed = currentTime - lastTime;
@@ -177,220 +184,26 @@ void App::Run()
 		float dammySpacing = 5.0;
 		// Widgets
 		//ImGui::ShowDemoWindow();
-		if (m_selectedObject)
-		{
-			ImGui::Begin("Inspector");
-				MeshComponent* meshComponent = m_selectedObject->GetComponent<MeshComponent>();
-				if(meshComponent)
-				{
-					Material* material = meshComponent->GetMaterial();
-					Transform& transform = m_selectedObject->GetTransform();
-					
-					ImGui::Text(("Object Name: " + m_selectedObject->GetName()).c_str());
-					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-					ImGui::Separator();//----------------------------------------
-					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-					ui::Checkbox("Is Dinamic", &m_selectedObject->dinamic);
-					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-					ImGui::Separator();//----------------------------------------
-					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-					
-					if(ui::CollapsingHeader("Transform"))
-					{
-						ImGui::Text("Transform");
-						ImGui::DragFloat3("Position", &transform.position.x, 0.1f);
-						ImGui::DragFloat3("Rotation", &transform.rotation.x, 0.1f);
 
-						ui::Checkbox("Uniform scale", &m_uniformTranformScale);
-
-						if (m_uniformTranformScale)
-						{
-							float scale = transform.scale.x;
-
-							ui::DragFloat("All(x, y, z)", &scale, 0.1);
-
-							transform.scale.x = scale;
-							transform.scale.y = scale;
-							transform.scale.z = scale;
-						}
-						else
-						{
-							ui::DragFloat3("Scale", &transform.scale.x, 0.1);
-						}
-					}
-
-					ImGui::Dummy(ImVec2(0.0f, dammySpacing)); 
-					ImGui::Separator(); // ----------------------------------------
-					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-					if(ui::CollapsingHeader("Mesh Renderer"))
-					{
-						if (material)
-						{
-
-							ImGui::Text("Material Color");
-							ImGui::ColorEdit3(" ", glm::value_ptr(material->GetMaterialColor()));
-
-
-						}
-					}
-					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-					ImGui::Separator();//----------------------------------------
-					ImGui::Dummy(ImVec2(0.0f, dammySpacing)); 
-					
-				} // END MESH COMPONENT
-
-				if(auto collider = m_selectedObject->GetComponent<BoxCollider>())
-				{
-					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-					if(ui::CollapsingHeader("BoxCollider"))
-					{
-						ui::Text("Box Collider");
-
-						bool trigger = collider->isTrigger;
-						if (ui::Checkbox("Is trigger", &trigger))
-						{
-							collider->isTrigger = trigger;
-						}
-
-						ui::DragFloat3("Center", &collider->center.x, 0.1);
-
-						if (ui::Checkbox("Uniform Scale", &m_uniformBoxColliderSize));
-
-						if (m_uniformBoxColliderSize)
-						{
-							float size = collider->size.x;
-							ui::DragFloat("all(x,y,z)", &size, 0.1);
-							collider->size.x = size;
-							collider->size.y = size;
-							collider->size.z = size;
-							collider->UpdateBounds();
-						}
-
-						if (!m_uniformBoxColliderSize)
-						{
-							ui::DragFloat3("Size", &collider->size.x, 0.1);
-							collider->UpdateBounds();
-						}
-					}
-				}
-				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-				ui::Separator();
-				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-				if (auto rigidbody = m_selectedObject->GetComponent<RigidbodyComponent>())
-				{
-					if (ui::CollapsingHeader("RigidBody"))
-					{
-						ui::Text("Rigidbody");
-						ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-						ui::DragFloat("Mass", &rigidbody->mass, 0.1);
-						ui::Checkbox("HasGravity", &rigidbody->useGravity);
-						ui::DragFloat("GravitScale", &rigidbody->gravityScale, 0.1);
-					}
-					
-				}
-				
-				
-
-			ImGui::End(); // END INSPECTOR
-
-			ImGui::Begin("Hieranchy");
-				for(auto& object : m_scene.GetGameObjects())
-				{
-					bool selected = object.get() == m_selectedObject;
-				
-					if(ImGui::Selectable(object->GetName().c_str(), selected)){
-						m_selectedObject = object.get();
-					}
-				
-				}
-				ImGui::Separator();
-				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-			ImGui::End(); // END HIERARCHY
-			
-			ImGui::Begin("Lighting");
-			ImGui::Text("Directional Light");
-				ImGui::DragFloat3("Direction", glm::value_ptr(m_scene.GetDirectionalLight().Direction));
-				ImGui::ColorEdit3("D_Color", glm::value_ptr(m_scene.GetDirectionalLight().Color));
-				ImGui::DragFloat("D_Intensity", &m_scene.GetDirectionalLight().Intensity, 0.0f, 0.0f, 10.0);
-				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-				ImGui::Separator();
-				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-				ImGui::Text("Ambiente");
-				ImGui::ColorEdit3("A_Color", glm::value_ptr(m_scene.GetAmbienteLight().Color));
-				ImGui::DragFloat("A_Intensity", &m_scene.GetAmbienteLight().Intensity, 1.0);
-			ImGui::End(); // END LIGHT
-
-			ImGui::Begin("Create");
-				if(ImGui::Button("Create Cube"))
-				{		
-						GameObject* cube = CreateCube();
-						m_selectedObject = cube;
-					
-				}
-				if(ImGui::Button("Create Plane"))
-				{
-					GameObject* plane = CreatePlane();
-					m_selectedObject = plane;
-				}
-				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-				ui::Separator();
-				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-				if(ui::Button("Delete Selected"))
-				{
-					m_scene.RemoveGameObject(m_selectedObject);
-					if(m_scene.GetGameObjects().size() > 0)
-					{
-						m_selectedObject = m_scene.GetGameObjects()[0].get();
-					}
-					else
-					{
-						m_selectedObject = nullptr;
-					}
-				}
-				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-				ui::Separator();
-				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-				if (ImGui::Button("SaveScene", ImVec2(100, 20)))
-				{
-					m_sceneSerializer.Save(m_scene, "Scene.txt");
-					m_SceneSaved = true;
-					saveMessageTimer = 2.0f;
-				}
-
-				if (m_SceneSaved)
-				{
-					ImGui::Text("Scene Saved!");
-				}
-
-				if (saveMessageTimer > 0.0)
-				{
-					saveMessageTimer -= deltaTime;
-				}
-
-				if (saveMessageTimer <= 0.0)
-				{
-					m_SceneSaved = false;
-				}
-			ImGui::End(); // END CREATE
-		}
+		m_editorLayer.Draw(deltaTime);
 
 		m_renderer.DrawScene(renderContext);
 
-		if(m_selectedObject)
+		if(m_editorLayer.GetSelectedObject())
 		{
-			glm::vec3 start = glm::vec3(m_selectedObject->GetTransform().position.x,
-				m_selectedObject->GetTransform().position.y,
-				m_selectedObject->GetTransform().position.z);
+			glm::vec3 start = glm::vec3(m_editorLayer.GetSelectedObject()->GetTransform().position.x,
+				m_editorLayer.GetSelectedObject()->GetTransform().position.y,
+				m_editorLayer.GetSelectedObject()->GetTransform().position.z);
 
-			glm::vec3 end = glm::vec3(m_selectedObject->GetTransform().position.x,
-				m_selectedObject->GetTransform().position.y + 3,
-				m_selectedObject->GetTransform().position.z);
+			glm::vec3 end = glm::vec3(m_editorLayer.GetSelectedObject()->GetTransform().position.x,
+				m_editorLayer.GetSelectedObject()->GetTransform().position.y + 3,
+				m_editorLayer.GetSelectedObject()->GetTransform().position.z);
 
 			//m_renderer.DrawLine(start, end, glm::vec3(0.0, 1.0, 0.0), m_camera.GetViewProjectionMatrix(aspect));
-			m_renderer.DrawTransformGizmos(*m_selectedObject, m_camera, aspect);
-			if(m_selectedObject->GetComponent<BoxCollider>())
+			m_renderer.DrawTransformGizmos(*m_editorLayer.GetSelectedObject(), m_camera, aspect);
+			if(m_editorLayer.GetSelectedObject()->GetComponent<BoxCollider>())
 			{
-				m_renderer.DrawBoxCollider(*m_selectedObject->GetComponent<BoxCollider>(), m_camera.GetViewProjectionMatrix(aspect));
+				m_renderer.DrawBoxCollider(*m_editorLayer.GetSelectedObject()->GetComponent<BoxCollider>(), m_camera.GetViewProjectionMatrix(aspect));
 
 			}
 		}
@@ -451,7 +264,7 @@ void App::ProcessInput()
 
 void App::Update(float dt)
 {
-
+	m_scene.Update(dt);
 }
 
 void App::FixedUpdate(float dt)
@@ -472,8 +285,9 @@ GameObject* App::CreateCube()
 	GameObject& cube = m_scene.CreateGameObject(name, ObjectType::Cube);
 	cube.AddComponent(std::make_unique<MeshComponent>(&m_cubeMash, m_cubeMaterial));
 	//cube.AddComponent(std::make_unique<MeshComponent>(&m_etAsset->GetMesh(), m_cubeMaterial));
-	cube.AddComponent(std::make_unique<BoxCollider>());
-	cube.AddComponent(std::make_unique<RigidbodyComponent>());
+	//cube.AddComponent(std::make_unique<BoxCollider>());
+	//cube.AddComponent(std::make_unique<RigidbodyComponent>());
+	cube.AddComponent(std::make_unique<RotatorScript>());
 	cube.GetTransform().position.x = 0.0f;
 	cube.GetTransform().position.y = 15.0f;
 	cube.GetTransform().position.z = 0.0f;
@@ -524,7 +338,7 @@ void App::LoadScene()
 		{
 			GameObject* object = CreateObjectFromType(data.type);
 			object->SetName(data.name);
-			if (m_selectedObject == nullptr) { m_selectedObject = object; }
+			if (m_editorLayer.GetSelectedObject() == nullptr) { m_editorLayer.SetSelectedObject(object); }
 			Transform& transform = object->GetTransform();
 			Material* material = object->GetComponent<MeshComponent>()->GetMaterial();
 
@@ -580,6 +394,6 @@ void App::LoadAmbinetLightScene()
 
 void App::CreateDefaultScene()
 {
-	m_selectedObject = CreateCube();
+	m_editorLayer.SetSelectedObject(CreateCube());
 	CreatePlane();
 }

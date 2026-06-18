@@ -8,7 +8,7 @@ class RigidbodyComponent : public Component
 public:
 	glm::vec3 velocity = glm::vec3(0.0);
 	float mass = 1;
-	bool useGravity = true;
+	bool useGravity = false;
 	float gravityScale = 1;
 
 	void OnAttach() override;

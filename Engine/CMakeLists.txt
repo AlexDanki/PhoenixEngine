@@ -9,7 +9,7 @@ target_sources(PhoenixEngine PRIVATE
     "../ThirdParty/ImGui/imgui_impl_glfw.cpp"
     "../ThirdParty/ImGui/imgui_impl_opengl3.cpp"
 
-    "../ThirdParty/ImGui/imgui_demo.cpp" "src/MeshAsset.cpp" "include/BoxCollider.h" "src/BoxCollider.cpp" "include/RigidbodyComponent.h" "src/RigidbodyComponent.cpp")
+    "../ThirdParty/ImGui/imgui_demo.cpp" "src/MeshAsset.cpp" "include/BoxCollider.h" "src/BoxCollider.cpp" "include/RigidbodyComponent.h" "src/RigidbodyComponent.cpp" "include/EditorLayer.h" "src/EditorLayer.cpp" "include/ScriptComponent.h"  "include/RotatorScript.h")
 
 
 target_include_directories(PhoenixEngine PUBLIC	include "../ThirdParty/ImGui")

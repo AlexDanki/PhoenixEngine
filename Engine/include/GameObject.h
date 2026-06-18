@@ -28,6 +28,8 @@ public:
 	Transform& GetTransform();
 	const Transform& GetTransform() const;
 
+	void UpdateScripts(float dt);
+
 	ObjectType GetType() const;
 
 	void AddComponent(std::unique_ptr<Component> component);

@@ -9,7 +9,7 @@ public:
 	BoxCollider();
 	bool uniformSize = true;
 	bool isTrigger = false;
-	glm::vec3 center = glm::vec3(1.0);
+	glm::vec3 center = glm::vec3(0.0);
 	glm::vec3 size = glm::vec3(1.0);
 
 	void UpdateBounds();
