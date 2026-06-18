@@ -8,7 +8,7 @@ class MeshComponent : public Component
 {
 public:
 	explicit MeshComponent(Mesh* mesh, Material* material);
-
+	void OnAttach() override;
 	Mesh* GetMesh() const;
 	Material* GetMaterial() const;
 

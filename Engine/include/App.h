@@ -10,8 +10,11 @@
 #include "SceneSerializer.h"
 #include "Material.h"
 #include "Mesh.h"
+#include "MeshAsset.h"
+#include "BoxCollider.h"
 
 struct RenderContext;
+
 
 class App
 {
@@ -28,24 +31,29 @@ private:
 	Camera m_camera;
 	AssetManager m_assetManager;
 	GameObject* m_selectedObject = nullptr;
+	GameObject* m_player = nullptr;
+	GameObject* m_ground= nullptr;
 	SceneSerializer m_sceneSerializer;
 	bool m_SceneSaved = false;
+	bool m_uniformTranformScale = true;
+	bool m_uniformBoxColliderSize = true;
 
 	// Assets
 	Shader* m_litShader;
 	Texture* m_defaultTexture;
 
 	Material* m_cubeMaterial = nullptr; // Cube
-	Mesh m_cubeMash;					// Cube
+	MeshAsset* m_etAsset = nullptr;
 
 	Material* m_planeMaterial = nullptr; // Plane
-	Mesh m_planeMash;					// Plane
+	Mesh m_planeMash;	
+	Mesh m_cubeMash;	
 	//Material
 
 	void Init();
 	void ProcessInput();
 	void Update(float dt);
-	void FixedUpdate();
+	void FixedUpdate(float dt);
 	void Render();
 
 	GameObject* CreateCube();

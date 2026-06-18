@@ -13,6 +13,9 @@ class Scene
 {
 public:
 
+	void Update(float deltaTime);
+	void FixedUpdate(float deltaTime);
+
 	GameObject& CreateGameObject(const std::string& name, ObjectType type);
 
 	void RemoveGameObject(GameObject* gameObject);

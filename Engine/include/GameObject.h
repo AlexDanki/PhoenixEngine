@@ -5,6 +5,7 @@
 #include "Transform.h"
 #include <type_traits>
 #include "Component.h"
+#include <glm/glm.hpp>
 
 enum class ObjectType
 {
@@ -15,7 +16,11 @@ enum class ObjectType
 class GameObject
 {
 public:
+
+	bool dinamic = true;
 	GameObject(const std::string& name, ObjectType type);
+
+	glm::vec3 velocity = glm::vec3(0.0);
 
 	const std::string GetName() const;
 	void SetName(const std::string& name) { m_name = name; }
@@ -38,6 +43,7 @@ public:
 		auto component = std::make_unique<T>();
 
 		component->SetOwner(this);
+		component->OnAttach();
 
 		T& ref = *component;
 

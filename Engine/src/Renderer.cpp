@@ -13,6 +13,7 @@
 #include "iostream";
 #include "RenderContext.h"
 #include "Shader.h"
+#include "BoxCollider.h"
 
 void Renderer::Init()
 {
@@ -147,6 +148,30 @@ void Renderer::DrawTransformGizmos(const GameObject& object, const Camera& camer
     glm::vec3 zEnd = glm::vec3(0.0, 0.0, size) + position;
     glm::vec3 blueColor(0.0, 0.0, 1.0);
     DrawLine(position, zEnd, blueColor, viewProjection);
+}
+
+void Renderer::DrawBoxCollider(BoxCollider& boxCollider, glm::mat4 viewProjection)
+{
+    glm::vec3 color(0, 1, 0);
+    auto borders = boxCollider.GetCorners();
+
+    // Edges de baixo
+    DrawLine(borders[0], borders[1], color, viewProjection);
+    DrawLine(borders[1], borders[2], color, viewProjection);
+    DrawLine(borders[2], borders[3], color, viewProjection);
+    DrawLine(borders[3], borders[0], color, viewProjection);
+
+    //Edges de cima
+    DrawLine(borders[4], borders[5], color, viewProjection);
+    DrawLine(borders[5], borders[6], color, viewProjection);
+    DrawLine(borders[6], borders[7], color, viewProjection);
+    DrawLine(borders[7], borders[4], color, viewProjection);
+
+    //Edges Verticais
+    DrawLine(borders[0], borders[4], color, viewProjection);
+    DrawLine(borders[1], borders[5], color, viewProjection);
+    DrawLine(borders[2], borders[6], color, viewProjection);
+    DrawLine(borders[3], borders[7], color, viewProjection);
 }
 
 void Renderer::SendModelMatrix(Shader* shader, const GameObject& object)

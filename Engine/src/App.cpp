@@ -5,6 +5,7 @@
 #include "Mesh.h"
 #include "GameObject.h"
 #include "MeshComponent.h"
+#include "BoxCollider.h" 
 #include "memory"
 #include "RenderContext.h"
 #include "imgui.h"
@@ -12,6 +13,8 @@
 #include "imgui_impl_opengl3.h"
 #include <glm/gtc/type_ptr.inl>
 #include "OBJLoader.h"
+#include "MeshAsset.h"
+#include "RigidbodyComponent.h"
 
 namespace ui = ImGui;
 
@@ -64,6 +67,7 @@ void App::Run()
 	
 	// Mesh
 	m_planeMash.CreatePlane();
+	m_cubeMash.CreateCube();
 	// Material
 	Material planeMaterial(m_litShader);
 	planeMaterial.SetMaterialColor(glm::vec3(1, 1, 1));
@@ -72,8 +76,8 @@ void App::Run()
 
 	
 	// Mesh
-	//m_cubeMash.CreateCube();
-	m_cubeMash.CreateObjectFromFile("Models/Et.obj");
+	m_etAsset = m_assetManager.LoadMeshAsset("Models/Et.obj");
+
 	// Material
 	Material cubeMaterial(m_litShader);
 	cubeMaterial.SetTexture(m_defaultTexture);
@@ -82,8 +86,8 @@ void App::Run()
 
 	// Posiciona Camera
 	m_camera.GetTransform().position.x = 0.0f;
-	m_camera.GetTransform().position.z = 20.0f;
-	m_camera.GetTransform().position.y = 6.0f;
+	m_camera.GetTransform().position.z = 10.0f;
+	m_camera.GetTransform().position.y = 3.0f;
 
 	// Configura Timer
 	using Clock = std::chrono::high_resolution_clock;
@@ -105,6 +109,24 @@ void App::Run()
 		m_camera,
 		aspect
 	};
+
+	/*int sizeGeneration = 5;
+	for (int x = 0; x < sizeGeneration; x++)
+	{
+		for (int y = 0; y < sizeGeneration; y++)
+		{
+			for (int z = 0; z < sizeGeneration; z++)
+			{
+				GameObject* cube = CreateCube();
+				m_selectedObject = cube;
+
+				Transform* t = &cube->GetTransform();
+				t->position.x = 2 * (x % 10);
+				t->position.y = 2 * (y % 10);
+				t->position.z = 2 * (z % 10);
+			}
+		}
+	}*/
 
 	// Verifica se não existe Cena salva.
 	if(!m_sceneSerializer.SceneFileExists("Scene.txt"))
@@ -136,7 +158,7 @@ void App::Run()
 		// Loop Fixo
 		while (accumulator >= fixedDeltaTime)
 		{
-			FixedUpdate();
+			FixedUpdate(deltaTime);
 			accumulator -= fixedDeltaTime;
 		}
 
@@ -146,7 +168,7 @@ void App::Run()
 		// Renderiza
 		m_renderer.Clear();
 		
-		
+		// Alterei
 
 		// Começo do frame ImGui
 		ImGui_ImplOpenGL3_NewFrame();
@@ -163,52 +185,113 @@ void App::Run()
 				{
 					Material* material = meshComponent->GetMaterial();
 					Transform& transform = m_selectedObject->GetTransform();
-					if(material)
+					
+					ImGui::Text(("Object Name: " + m_selectedObject->GetName()).c_str());
+					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
+					ImGui::Separator();//----------------------------------------
+					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
+					ui::Checkbox("Is Dinamic", &m_selectedObject->dinamic);
+					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
+					ImGui::Separator();//----------------------------------------
+					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
+					
+					if(ui::CollapsingHeader("Transform"))
 					{
-						ImGui::Text(("Object Name: " + m_selectedObject->GetName()).c_str());
-						ImGui::Dummy(ImVec2(0.0f, dammySpacing)); 
-						ImGui::Separator();//----------------------------------------
-						ImGui::Dummy(ImVec2(0.0f, dammySpacing)); 
-						
-						ImGui::Text("Material Color");
-						ImGui::ColorEdit3(" ", glm::value_ptr(material->GetMaterialColor()));
-						ImGui::Dummy(ImVec2(0.0f, dammySpacing)); 
+						ImGui::Text("Transform");
+						ImGui::DragFloat3("Position", &transform.position.x, 0.1f);
+						ImGui::DragFloat3("Rotation", &transform.rotation.x, 0.1f);
 
+						ui::Checkbox("Uniform scale", &m_uniformTranformScale);
+
+						if (m_uniformTranformScale)
+						{
+							float scale = transform.scale.x;
+
+							ui::DragFloat("All(x, y, z)", &scale, 0.1);
+
+							transform.scale.x = scale;
+							transform.scale.y = scale;
+							transform.scale.z = scale;
+						}
+						else
+						{
+							ui::DragFloat3("Scale", &transform.scale.x, 0.1);
+						}
 					}
 
-					ImGui::Separator(); //-------------------------------------------
-					ImGui::Dummy(ImVec2(0.0f, dammySpacing)); 
-					ImGui::Text("Transform");
-					ImGui::DragFloat3("Position", &transform.position.x, 0.1f);
-					ImGui::DragFloat3("Rotation", &transform.rotation.x, 0.1f);
-					ImGui::DragFloat3("Scale", &transform.scale.x, 0.1f);
 					ImGui::Dummy(ImVec2(0.0f, dammySpacing)); 
 					ImGui::Separator(); // ----------------------------------------
+					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
+					if(ui::CollapsingHeader("Mesh Renderer"))
+					{
+						if (material)
+						{
 
+							ImGui::Text("Material Color");
+							ImGui::ColorEdit3(" ", glm::value_ptr(material->GetMaterialColor()));
+
+
+						}
+					}
+					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
+					ImGui::Separator();//----------------------------------------
 					ImGui::Dummy(ImVec2(0.0f, dammySpacing)); 
-					if (ImGui::Button("SaveScene", ImVec2(100, 20)))
-					{
-						m_sceneSerializer.Save(m_scene, "Scene.txt");
-						m_SceneSaved = true;
-						saveMessageTimer = 2.0f;
-					}
+					
+				} // END MESH COMPONENT
 
-					if (m_SceneSaved)
+				if(auto collider = m_selectedObject->GetComponent<BoxCollider>())
+				{
+					ImGui::Dummy(ImVec2(0.0f, dammySpacing));
+					if(ui::CollapsingHeader("BoxCollider"))
 					{
-						ImGui::Text("Scene Saved!");
-					}
+						ui::Text("Box Collider");
 
-					if (saveMessageTimer > 0.0)
-					{
-						saveMessageTimer -= deltaTime;
-					}
+						bool trigger = collider->isTrigger;
+						if (ui::Checkbox("Is trigger", &trigger))
+						{
+							collider->isTrigger = trigger;
+						}
 
-					if (saveMessageTimer <= 0.0)
-					{
-						m_SceneSaved = false;
+						ui::DragFloat3("Center", &collider->center.x, 0.1);
+
+						if (ui::Checkbox("Uniform Scale", &m_uniformBoxColliderSize));
+
+						if (m_uniformBoxColliderSize)
+						{
+							float size = collider->size.x;
+							ui::DragFloat("all(x,y,z)", &size, 0.1);
+							collider->size.x = size;
+							collider->size.y = size;
+							collider->size.z = size;
+							collider->UpdateBounds();
+						}
+
+						if (!m_uniformBoxColliderSize)
+						{
+							ui::DragFloat3("Size", &collider->size.x, 0.1);
+							collider->UpdateBounds();
+						}
 					}
 				}
-			ImGui::End();
+				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
+				ui::Separator();
+				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
+				if (auto rigidbody = m_selectedObject->GetComponent<RigidbodyComponent>())
+				{
+					if (ui::CollapsingHeader("RigidBody"))
+					{
+						ui::Text("Rigidbody");
+						ImGui::Dummy(ImVec2(0.0f, dammySpacing));
+						ui::DragFloat("Mass", &rigidbody->mass, 0.1);
+						ui::Checkbox("HasGravity", &rigidbody->useGravity);
+						ui::DragFloat("GravitScale", &rigidbody->gravityScale, 0.1);
+					}
+					
+				}
+				
+				
+
+			ImGui::End(); // END INSPECTOR
 
 			ImGui::Begin("Hieranchy");
 				for(auto& object : m_scene.GetGameObjects())
@@ -222,26 +305,27 @@ void App::Run()
 				}
 				ImGui::Separator();
 				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
-			ImGui::End();
+			ImGui::End(); // END HIERARCHY
 			
 			ImGui::Begin("Lighting");
 			ImGui::Text("Directional Light");
 				ImGui::DragFloat3("Direction", glm::value_ptr(m_scene.GetDirectionalLight().Direction));
 				ImGui::ColorEdit3("D_Color", glm::value_ptr(m_scene.GetDirectionalLight().Color));
-				ImGui::DragFloat("D_Intensity", &m_scene.GetDirectionalLight().Intensity, 0.0f, 1.0f, 10.0);
+				ImGui::DragFloat("D_Intensity", &m_scene.GetDirectionalLight().Intensity, 0.0f, 0.0f, 10.0);
 				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
 				ImGui::Separator();
 				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
 				ImGui::Text("Ambiente");
 				ImGui::ColorEdit3("A_Color", glm::value_ptr(m_scene.GetAmbienteLight().Color));
 				ImGui::DragFloat("A_Intensity", &m_scene.GetAmbienteLight().Intensity, 1.0);
-			ImGui::End();
+			ImGui::End(); // END LIGHT
 
 			ImGui::Begin("Create");
 				if(ImGui::Button("Create Cube"))
-				{
-					GameObject* cube = CreateCube();
-					m_selectedObject = cube;
+				{		
+						GameObject* cube = CreateCube();
+						m_selectedObject = cube;
+					
 				}
 				if(ImGui::Button("Create Plane"))
 				{
@@ -263,20 +347,54 @@ void App::Run()
 						m_selectedObject = nullptr;
 					}
 				}
-			ImGui::End();
+				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
+				ui::Separator();
+				ImGui::Dummy(ImVec2(0.0f, dammySpacing));
+				if (ImGui::Button("SaveScene", ImVec2(100, 20)))
+				{
+					m_sceneSerializer.Save(m_scene, "Scene.txt");
+					m_SceneSaved = true;
+					saveMessageTimer = 2.0f;
+				}
+
+				if (m_SceneSaved)
+				{
+					ImGui::Text("Scene Saved!");
+				}
+
+				if (saveMessageTimer > 0.0)
+				{
+					saveMessageTimer -= deltaTime;
+				}
+
+				if (saveMessageTimer <= 0.0)
+				{
+					m_SceneSaved = false;
+				}
+			ImGui::End(); // END CREATE
 		}
+
 		m_renderer.DrawScene(renderContext);
-		glm::vec3 start = glm::vec3(m_selectedObject->GetTransform().position.x, 
-			m_selectedObject->GetTransform().position.y, 
-			m_selectedObject->GetTransform().position.z);
 
-		glm::vec3 end = glm::vec3(m_selectedObject->GetTransform().position.x, 
-			m_selectedObject->GetTransform().position.y + 3,
-			m_selectedObject->GetTransform().position.z);
+		if(m_selectedObject)
+		{
+			glm::vec3 start = glm::vec3(m_selectedObject->GetTransform().position.x,
+				m_selectedObject->GetTransform().position.y,
+				m_selectedObject->GetTransform().position.z);
 
-		//m_renderer.DrawLine(start, end, glm::vec3(0.0, 1.0, 0.0), m_camera.GetViewProjectionMatrix(aspect));
-		m_renderer.DrawTransformGizmos(*m_selectedObject, m_camera, aspect);
+			glm::vec3 end = glm::vec3(m_selectedObject->GetTransform().position.x,
+				m_selectedObject->GetTransform().position.y + 3,
+				m_selectedObject->GetTransform().position.z);
 
+			//m_renderer.DrawLine(start, end, glm::vec3(0.0, 1.0, 0.0), m_camera.GetViewProjectionMatrix(aspect));
+			m_renderer.DrawTransformGizmos(*m_selectedObject, m_camera, aspect);
+			if(m_selectedObject->GetComponent<BoxCollider>())
+			{
+				m_renderer.DrawBoxCollider(*m_selectedObject->GetComponent<BoxCollider>(), m_camera.GetViewProjectionMatrix(aspect));
+
+			}
+		}
+		
 		// Final do frame ImGui
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(
@@ -336,9 +454,9 @@ void App::Update(float dt)
 
 }
 
-void App::FixedUpdate()
+void App::FixedUpdate(float dt)
 {
-
+	m_scene.FixedUpdate(dt);
 }
 
 void App::Render()
@@ -349,14 +467,18 @@ void App::Render()
 
 GameObject* App::CreateCube()
 {
-	
-	// Cria objeto 02
+
 	std::string name = m_scene.GenerateUniqueName("Cube");
 	GameObject& cube = m_scene.CreateGameObject(name, ObjectType::Cube);
 	cube.AddComponent(std::make_unique<MeshComponent>(&m_cubeMash, m_cubeMaterial));
+	//cube.AddComponent(std::make_unique<MeshComponent>(&m_etAsset->GetMesh(), m_cubeMaterial));
+	cube.AddComponent(std::make_unique<BoxCollider>());
+	cube.AddComponent(std::make_unique<RigidbodyComponent>());
 	cube.GetTransform().position.x = 0.0f;
-	cube.GetTransform().position.y = 1.0f;
+	cube.GetTransform().position.y = 15.0f;
 	cube.GetTransform().position.z = 0.0f;
+
+	m_player = &cube;
 
 	return &cube;
 }
@@ -368,7 +490,10 @@ GameObject* App::CreatePlane()
 	std::string name = m_scene.GenerateUniqueName("Plane");
 	GameObject& plane = m_scene.CreateGameObject(name, ObjectType::Plane);
 	plane.AddComponent(std::make_unique<MeshComponent>(&m_planeMash, m_planeMaterial));
+	plane.AddComponent(std::make_unique<BoxCollider>());
+	//plane.AddComponent(std::make_unique<RigidbodyComponent>());
 
+	m_ground = &plane;
 	return &plane;
 }
 

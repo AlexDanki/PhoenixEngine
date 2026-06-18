@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include "Shader.h"
+#include "MeshAsset.h"
 
 AssetManager::AssetManager()
 {
@@ -66,6 +67,27 @@ Shader* AssetManager::LoadShader(const std::string& vertPath, const std::string&
 
 	return shaderPtr;
 
+}
+
+MeshAsset* AssetManager::LoadMeshAsset(const std::string& path)
+{
+	auto it = m_meshAssets.find(path);
+
+	if(it != m_meshAssets.end())
+	{
+		return it->second.get();
+	}
+
+	auto meshAsset = std::make_unique<MeshAsset>();
+
+	if (!meshAsset->LoadFromFile(path)) return nullptr;
+
+	MeshAsset* meshAssetPtr = meshAsset.get();
+	
+
+	m_meshAssets[path] = std::move(meshAsset);
+
+	return meshAssetPtr;
 }
 
 std::string AssetManager::ReadFile(const std::string& path)

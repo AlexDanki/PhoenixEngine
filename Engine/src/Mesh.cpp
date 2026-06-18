@@ -73,40 +73,42 @@ void Mesh::CreateCube()
 	m_vertices =
 	{
 		// Frente (normal +Z)
-	{glm::vec3{-1.0f, -1.0f,  1.0f}, glm::vec3{0.0f, 0.0f, 1.0f}, glm::vec2(0,1)},
-	{glm::vec3{ 1.0f, -1.0f,  1.0f}, glm::vec3{0.0f, 0.0f, 1.0f}, glm::vec2(1,1)},
-	{glm::vec3{ 1.0f,  1.0f,  1.0f}, glm::vec3{0.0f, 0.0f, 1.0f}, glm::vec2(1,0)},
-	{glm::vec3{-1.0f,  1.0f,  1.0f}, glm::vec3{0.0f, 0.0f, 1.0f}, glm::vec2(0,0)},
+	// Frente (normal +Z)
+{glm::vec3{-0.5f, -0.5f,  0.5f}, glm::vec3{0.0f, 0.0f, 1.0f}, glm::vec2(0,1)},
+{glm::vec3{ 0.5f, -0.5f,  0.5f}, glm::vec3{0.0f, 0.0f, 1.0f}, glm::vec2(1,1)},
+{glm::vec3{ 0.5f,  0.5f,  0.5f}, glm::vec3{0.0f, 0.0f, 1.0f}, glm::vec2(1,0)},
+{glm::vec3{-0.5f,  0.5f,  0.5f}, glm::vec3{0.0f, 0.0f, 1.0f}, glm::vec2(0,0)},
 
-	// Trás (normal -Z)
-	{glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec2(0,1)},
-	{glm::vec3{ 1.0f, -1.0f, -1.0f}, glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec2(1,1)},
-	{glm::vec3{ 1.0f,  1.0f, -1.0f}, glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec2(1,0)},
-	{glm::vec3{-1.0f,  1.0f, -1.0f}, glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec2(0,0)},
+// Trás (normal -Z)
+{glm::vec3{-0.5f, -0.5f, -0.5f}, glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec2(0,1)},
+{glm::vec3{ 0.5f, -0.5f, -0.5f}, glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec2(1,1)},
+{glm::vec3{ 0.5f,  0.5f, -0.5f}, glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec2(1,0)},
+{glm::vec3{-0.5f,  0.5f, -0.5f}, glm::vec3{0.0f, 0.0f, -1.0f}, glm::vec2(0,0)},
 
-	// Esquerda (normal -X)
-	{glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{-1.0f, 0.0f, 0.0f}, glm::vec2(0,1)},
-	{glm::vec3{-1.0f, -1.0f,  1.0f}, glm::vec3{-1.0f, 0.0f, 0.0f}, glm::vec2(1,1)},
-	{glm::vec3{-1.0f,  1.0f,  1.0f}, glm::vec3{-1.0f, 0.0f, 0.0f}, glm::vec2(1,0)},
-	{glm::vec3{-1.0f,  1.0f, -1.0f}, glm::vec3{-1.0f, 0.0f, 0.0f}, glm::vec2(0,0)},
+// Esquerda (normal -X)
+{glm::vec3{-0.5f, -0.5f, -0.5f}, glm::vec3{-1.0f, 0.0f, 0.0f}, glm::vec2(0,1)},
+{glm::vec3{-0.5f, -0.5f,  0.5f}, glm::vec3{-1.0f, 0.0f, 0.0f}, glm::vec2(1,1)},
+{glm::vec3{-0.5f,  0.5f,  0.5f}, glm::vec3{-1.0f, 0.0f, 0.0f}, glm::vec2(1,0)},
+{glm::vec3{-0.5f,  0.5f, -0.5f}, glm::vec3{-1.0f, 0.0f, 0.0f}, glm::vec2(0,0)},
 
-	// Direita (normal +X)
-	{glm::vec3{ 1.0f, -1.0f, -1.0f}, glm::vec3{1.0f, 0.0f, 0.0f}, glm::vec2(0,1)},
-	{glm::vec3{ 1.0f, -1.0f,  1.0f}, glm::vec3{1.0f, 0.0f, 0.0f}, glm::vec2(1,1)},
-	{glm::vec3{ 1.0f,  1.0f,  1.0f}, glm::vec3{1.0f, 0.0f, 0.0f}, glm::vec2(1,0)},
-	{glm::vec3{ 1.0f,  1.0f, -1.0f}, glm::vec3{1.0f, 0.0f, 0.0f}, glm::vec2(0,0)},
+// Direita (normal +X)
+{glm::vec3{ 0.5f, -0.5f, -0.5f}, glm::vec3{1.0f, 0.0f, 0.0f}, glm::vec2(0,1)},
+{glm::vec3{ 0.5f, -0.5f,  0.5f}, glm::vec3{1.0f, 0.0f, 0.0f}, glm::vec2(1,1)},
+{glm::vec3{ 0.5f,  0.5f,  0.5f}, glm::vec3{1.0f, 0.0f, 0.0f}, glm::vec2(1,0)},
+{glm::vec3{ 0.5f,  0.5f, -0.5f}, glm::vec3{1.0f, 0.0f, 0.0f}, glm::vec2(0,0)},
 
-	// Topo (normal +Y)
-	{glm::vec3{-1.0f,  1.0f, -1.0f}, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2(0,1)},
-	{glm::vec3{-1.0f,  1.0f,  1.0f}, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2(1,1)},
-	{glm::vec3{ 1.0f,  1.0f,  1.0f}, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2(1,0)},
-	{glm::vec3{ 1.0f,  1.0f, -1.0f}, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2(0,0)},
+// Topo (normal +Y)
+{glm::vec3{-0.5f,  0.5f, -0.5f}, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2(0,1)},
+{glm::vec3{-0.5f,  0.5f,  0.5f}, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2(1,1)},
+{glm::vec3{ 0.5f,  0.5f,  0.5f}, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2(1,0)},
+{glm::vec3{ 0.5f,  0.5f, -0.5f}, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2(0,0)},
 
-	// Base (normal -Y)
-	{glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{0.0f, -1.0f, 0.0f}, glm::vec2(0,1)},
-	{glm::vec3{-1.0f, -1.0f,  1.0f}, glm::vec3{0.0f, -1.0f, 0.0f}, glm::vec2(1,1)},
-	{glm::vec3{ 1.0f, -1.0f,  1.0f}, glm::vec3{0.0f, -1.0f, 0.0f}, glm::vec2(1,0)},
-	{glm::vec3{ 1.0f, -1.0f, -1.0f}, glm::vec3{0.0f, -1.0f, 0.0f}, glm::vec2(0,0)},
+// Base (normal -Y)
+{glm::vec3{-0.5f, -0.5f, -0.5f}, glm::vec3{0.0f, -1.0f, 0.0f}, glm::vec2(0,1)},
+{glm::vec3{-0.5f, -0.5f,  0.5f}, glm::vec3{0.0f, -1.0f, 0.0f}, glm::vec2(1,1)},
+{glm::vec3{ 0.5f, -0.5f,  0.5f}, glm::vec3{0.0f, -1.0f, 0.0f}, glm::vec2(1,0)},
+{glm::vec3{ 0.5f, -0.5f, -0.5f}, glm::vec3{0.0f, -1.0f, 0.0f}, glm::vec2(0,0)},
+
 
 	};
 
@@ -157,15 +159,6 @@ void Mesh::CreateObjectFromFile(const std::string& path)
 
 	m_vertices.clear();
 	m_indices.clear();
-
-	for (int i = 0; i < 10; i++)
-	{
-		std::cout
-			<< mesh->mTextureCoords[0][i].x
-			<< " "
-			<< mesh->mTextureCoords[0][i].y
-			<< "\n";
-	}
 
 	for(int i = 0; i < mesh->mNumVertices; i++)
 	{

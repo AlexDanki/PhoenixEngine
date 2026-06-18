@@ -27,6 +27,7 @@ const Transform& GameObject::GetTransform() const
 void GameObject::AddComponent(std::unique_ptr<Component> component)
 {
 	component->SetOwner(this);
+	component->OnAttach();
 	m_components.push_back(std::move(component));
 }
 

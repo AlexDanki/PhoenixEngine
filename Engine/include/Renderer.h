@@ -12,6 +12,7 @@ class GameObject;
 class DirectionalLight;
 class AmbienteLight;
 class Shader;
+class BoxCollider;
 struct RenderContext;
 
 class Renderer
@@ -23,6 +24,7 @@ public:
 	void DrawGameObject(const GameObject& object, RenderContext& renderContext);
 	void DrawScene(RenderContext& renderContext);
 	void DrawLine(glm::vec3& start, glm::vec3& end, glm::vec3& color, glm::mat4& viewProjection);
+	void DrawBoxCollider(BoxCollider& boxCollider, glm::mat4 viewProjection);
 
 	void SetLineShader(Shader* shader) { m_lineShader = shader; }
 	void DrawTransformGizmos(const GameObject& object, const Camera& camera, float aspect);

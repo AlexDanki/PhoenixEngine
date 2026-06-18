@@ -1,9 +1,14 @@
 #pragma once
 #include <vector>
 #include <string>
+
 struct Vertex;
+class MeshAsset;
+
 class Mesh
 {
+	friend class MeshAsset;
+
 public:
 	Mesh();
 	~Mesh();
