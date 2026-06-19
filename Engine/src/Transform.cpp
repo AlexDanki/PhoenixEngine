@@ -12,3 +12,11 @@ glm::mat4 Transform::GetMatrix() const
 
 	return model;
 }
+
+glm::vec3 Transform::GetPosition()
+{
+	float x = position.x;
+	float y = position.y;
+	float z = position.z;
+	return glm::vec3(x, y, z);
+}

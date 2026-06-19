@@ -11,6 +11,7 @@ enum class ObjectType
 {
 	Plane,
 	Cube,
+	Camera,
 };
 
 class GameObject

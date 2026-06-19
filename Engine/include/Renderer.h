@@ -27,12 +27,12 @@ public:
 	void DrawBoxCollider(BoxCollider& boxCollider, glm::mat4 viewProjection);
 
 	void SetLineShader(Shader* shader) { m_lineShader = shader; }
-	void DrawTransformGizmos(const GameObject& object, const Camera& camera, float aspect);
+	void DrawTransformGizmos(const GameObject& object, RenderContext& renderContext, float aspect);
 
 private:
 
 	void SendModelMatrix(Shader* shader, const GameObject& object);
-	void SendViewProjection(Shader* shader, const Camera& camera, const float aspectRatio);
+	void SendViewProjection(Shader* shader, RenderContext& renderContext, const float aspectRatio);
 	void SendDirectionalLight(Shader* shader, const DirectionalLight& dirLight);
 	void SendAmbineteLight(Shader* shader, const AmbienteLight& ambineteLight);
 

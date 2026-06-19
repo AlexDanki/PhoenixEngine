@@ -6,6 +6,7 @@
 #include "GameObject.h"
 #include "DirectionalLight.h"
 #include "AmbienteLight.h"
+#include "CameraComponent.h"
 
 //class GameObject;
 
@@ -28,6 +29,7 @@ public:
 	const DirectionalLight& GetDirectionalLight() const{ return m_directionalLight; }
 	AmbienteLight& GetAmbienteLight()  { return m_ambienteLight; }
 	const AmbienteLight& GetAmbienteLight()  const { return m_ambienteLight; }
+	CameraComponent* GetPrimaryCamera() const;
 
 private:
 	std::vector<std::unique_ptr<GameObject>> m_gameObjects;

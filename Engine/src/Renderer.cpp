@@ -103,7 +103,7 @@ void Renderer::DrawGameObject(const GameObject& object, RenderContext& renderCon
 
     shader->Use();
 
-    SendViewProjection(shader, renderContext.camera, renderContext.aspectRatio);
+    SendViewProjection(shader, renderContext, renderContext.aspectRatio);
     SendDirectionalLight(shader, renderContext.scene.GetDirectionalLight());
     SendAmbineteLight(shader, renderContext.scene.GetAmbienteLight());
     SendModelMatrix(shader, object);
@@ -124,11 +124,11 @@ void Renderer::DrawScene(RenderContext& renderContext)
     }
 }
 
-void Renderer::DrawTransformGizmos(const GameObject& object, const Camera& camera, float aspect)
+void Renderer::DrawTransformGizmos(const GameObject& object, RenderContext& renderContext, float aspect)
 {
     glm::vec3 position;
     float size = 2.0;
-    glm::mat4 viewProjection = camera.GetViewProjectionMatrix(aspect);
+    glm::mat4 viewProjection = renderContext.scene.GetPrimaryCamera()->GetViewProjection(aspect);
 
     position.x = object.GetTransform().position.x;
     position.y = object.GetTransform().position.y;
@@ -181,13 +181,13 @@ void Renderer::SendModelMatrix(Shader* shader, const GameObject& object)
     glUniformMatrix4fv(shader->GetModelLocation(), 1, GL_FALSE, glm::value_ptr(model));
 }
 
-void Renderer::SendViewProjection(Shader* shader, const Camera& camera, const float aspectRatio)
+void Renderer::SendViewProjection(Shader* shader, RenderContext& renderContext, const float aspectRatio)
 {
-    glm::mat4 view = camera.GetViewMatrix();
-    glm::mat4 projection = camera.GetProjectionMatrix(aspectRatio);
-    glm::mat4 viewProjection = projection * view;
-
-    glUniformMatrix4fv(shader->GetViewProjectionLocation(), 1, GL_FALSE, glm::value_ptr(viewProjection));
+    if(auto camera = renderContext.scene.GetPrimaryCamera())
+    {
+        glUniformMatrix4fv(shader->GetViewProjectionLocation(), 1, GL_FALSE,
+            glm::value_ptr(renderContext.scene.GetPrimaryCamera()->GetViewProjection(aspectRatio)));
+    }
 }
 
 void Renderer::SendDirectionalLight(Shader* shader, const DirectionalLight& dirLight)

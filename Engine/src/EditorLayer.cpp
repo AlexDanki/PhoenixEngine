@@ -5,6 +5,8 @@
 #include "MeshComponent.h"
 #include "Transform.h"
 #include "RigidbodyComponent.h"
+#include "CameraComponent.h"
+#include "RotatorScript.h"
 #include "BoxCollider.h"
 #include "ScriptComponent.h"
 #include "Material.h"
@@ -91,7 +93,6 @@ void EditorLayer::DrawInspector()
 				ImGui::Text("Material Color");
 				ImGui::ColorEdit3(" ", glm::value_ptr(material->GetMaterialColor()));
 
-
 			}
 		}
 		
@@ -145,6 +146,17 @@ void EditorLayer::DrawInspector()
 		}
 
 	}
+	if(auto camera = m_selectedObject->GetComponent<CameraComponent>())
+	{
+		if(ui::CollapsingHeader("Camera"))
+		{
+			ui::DragFloat("Fov", &camera->FOV, 0.1);
+			ui::DragFloat("NearPlane", &camera->nearPlane, 0.1);
+			ui::DragFloat("FarPlane", &camera->farPlane, 0.1);
+			ImGui::Checkbox("Primary",&camera->primary);
+		}
+	}
+
 	if (auto script = m_selectedObject->GetComponent<ScriptComponent>())
 	{
 		if (ImGui::CollapsingHeader("Script"))
@@ -160,13 +172,11 @@ void EditorLayer::DrawInspector()
 	if (ui::BeginPopup("AddComponentPopPup"))
 	{
 		ui::Text("COMPONENTES:");
-		if (!m_selectedObject->GetComponent<BoxCollider>())
+		// Script não precisa ser verificado pq sempre podem ser adicionados
+		ui::Separator();
+		if (ui::MenuItem("BoxCollider"))
 		{
-			ui::Separator();
-			if(ui::MenuItem("BoxCollider"))
-			{
-				m_selectedObject->AddComponent(std::make_unique<BoxCollider>());
-			}
+			m_selectedObject->AddComponent(std::make_unique<BoxCollider>());
 		}
 		if(!m_selectedObject->GetComponent<RigidbodyComponent>())
 		{
@@ -178,9 +188,18 @@ void EditorLayer::DrawInspector()
 			
 		}
 		ui::Separator();
+		if(!m_selectedObject->GetComponent<CameraComponent>())
+		{
+			if (ui::MenuItem("Camera"))
+			{
+				m_selectedObject->AddComponent(std::make_unique<CameraComponent>());
+			}
+		}
+		ui::Separator();
+		// Script não precisa ser verificado pq sempre podem ser adicionados
 		if (ui::MenuItem("Script"))
 		{
-			m_selectedObject->AddComponent(std::make_unique<ScriptComponent>());
+			m_selectedObject->AddComponent(std::make_unique<RotatorScript>());
 		}
 		ui::EndPopup();
 	}

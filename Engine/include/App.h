@@ -24,6 +24,7 @@ public:
 	
 	GameObject* CreateCube();
 	GameObject* CreatePlane();
+	GameObject* CreateCamera();
 
 private:
 	bool m_isRunning = true;
@@ -33,8 +34,11 @@ private:
 	Scene m_scene;
 	Camera m_camera;
 	AssetManager m_assetManager;
+
 	GameObject* m_player = nullptr;
 	GameObject* m_ground= nullptr;
+	GameObject* m_mainCamera= nullptr;
+
 	SceneSerializer m_sceneSerializer;
 	EditorLayer m_editorLayer;
 
@@ -45,8 +49,10 @@ private:
 	// Assets
 	Shader* m_litShader;
 	Texture* m_defaultTexture;
+	Texture* m_cameraTexture;
 
 	Material* m_cubeMaterial = nullptr; // Cube
+	Material* m_cameraMaterial = nullptr; // Cube
 	MeshAsset* m_etAsset = nullptr;
 
 	Material* m_planeMaterial = nullptr; // Plane

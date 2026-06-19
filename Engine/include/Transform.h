@@ -18,5 +18,6 @@ public:
 	Vector3 scale{ 1.0f, 1.0f, 1.0f };
 
 	glm::mat4 GetMatrix() const;
+	glm::vec3 GetPosition();
 
 };

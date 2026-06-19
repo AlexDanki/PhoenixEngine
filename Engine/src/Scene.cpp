@@ -184,3 +184,19 @@ std::string Scene::GenerateUniqueName(const std::string& baseName)
 
 	
 }
+
+CameraComponent* Scene::GetPrimaryCamera() const
+{
+	for(auto& object : m_gameObjects)
+	{
+		if(auto camera = object->GetComponent<CameraComponent>())
+		{
+			if(camera->primary)
+			{
+				return camera;
+			}
+		}
+	}
+
+	return nullptr;
+}

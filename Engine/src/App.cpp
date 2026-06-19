@@ -16,6 +16,7 @@
 #include "MeshAsset.h"
 #include "RigidbodyComponent.h"
 #include "RotatorScript.h"
+#include "Input.h"
 
 namespace ui = ImGui;
 
@@ -37,15 +38,11 @@ void App::Run()
 
 	// Inicializa o Render
 	m_renderer.Init();
-	GLFWwindow* window = m_window.GetNativeWindow();
-	m_editorLayer.Inity(window);
 
-	/*IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-	
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 330");*/
+	m_editorLayer.Inity(m_window.GetNativeWindow());
+
+	Input::Init(m_window.GetNativeWindow());
+
 
 	// Cria Shader
 	m_litShader = m_assetManager.LoadShader("Shaders/Lit.vert", "Shaders/Lit.frag");
@@ -59,9 +56,14 @@ void App::Run()
 		std::cout << "Erro ao carregar textura: GrountTex" << std::endl;
 	}
 	
-
 	// Configura Material 02
-	m_defaultTexture = m_assetManager.LoadTexture("Textures/DefaultTex.png");
+	m_cameraTexture = m_assetManager.LoadTexture(" ");
+	if (!m_cameraTexture)
+	{
+		std::cout << "Erro ao carregar textura: AreiaTex" << std::endl;
+	}
+	// Configura Material 02
+	m_defaultTexture = m_assetManager.LoadTexture("Textures/ETImg.png");
 	if (!m_defaultTexture)
 	{
 		std::cout << "Erro ao carregar textura: AreiaTex" << std::endl;
@@ -77,7 +79,6 @@ void App::Run()
 	planeMaterial.SetTexture(groundTex);
 	m_planeMaterial = &planeMaterial;
 
-	
 	// Mesh
 	m_etAsset = m_assetManager.LoadMeshAsset("Models/Et.obj");
 
@@ -86,6 +87,12 @@ void App::Run()
 	cubeMaterial.SetTexture(m_defaultTexture);
 	cubeMaterial.SetMaterialColor({ 1, 1, 1 });
 	m_cubeMaterial = &cubeMaterial;
+	// Material
+
+	Material cameraMaterial(m_litShader);
+	cameraMaterial.SetTexture(m_cameraTexture);
+	cameraMaterial.SetMaterialColor({ 1, 1, 1 });
+	m_cameraMaterial = &cameraMaterial;
 
 	// Posiciona Camera
 	m_camera.GetTransform().position.x = 0.0f;
@@ -200,7 +207,7 @@ void App::Run()
 				m_editorLayer.GetSelectedObject()->GetTransform().position.z);
 
 			//m_renderer.DrawLine(start, end, glm::vec3(0.0, 1.0, 0.0), m_camera.GetViewProjectionMatrix(aspect));
-			m_renderer.DrawTransformGizmos(*m_editorLayer.GetSelectedObject(), m_camera, aspect);
+			m_renderer.DrawTransformGizmos(*m_editorLayer.GetSelectedObject(), renderContext, aspect);
 			if(m_editorLayer.GetSelectedObject()->GetComponent<BoxCollider>())
 			{
 				m_renderer.DrawBoxCollider(*m_editorLayer.GetSelectedObject()->GetComponent<BoxCollider>(), m_camera.GetViewProjectionMatrix(aspect));
@@ -230,8 +237,7 @@ void App::ProcessInput()
 	// Futuramente janela + inputs
 	GLFWwindow* window = m_window.GetNativeWindow();
 
-
-	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	/*if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
 		m_camera.GetTransform().position.z -= 0.05f;
 	}
@@ -259,7 +265,7 @@ void App::ProcessInput()
 	if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 	{
 		m_camera.GetTransform().position.y += 0.05f;
-	}
+	}*/
 }
 
 void App::Update(float dt)
@@ -288,13 +294,25 @@ GameObject* App::CreateCube()
 	//cube.AddComponent(std::make_unique<BoxCollider>());
 	//cube.AddComponent(std::make_unique<RigidbodyComponent>());
 	cube.AddComponent(std::make_unique<RotatorScript>());
-	cube.GetTransform().position.x = 0.0f;
-	cube.GetTransform().position.y = 15.0f;
-	cube.GetTransform().position.z = 0.0f;
+	cube.GetTransform().position.z = 0;
 
 	m_player = &cube;
 
 	return &cube;
+}
+GameObject* App::CreateCamera()
+{
+
+	std::string name = m_scene.GenerateUniqueName("Camera");
+	GameObject& camera = m_scene.CreateGameObject(name, ObjectType::Camera);
+	//camera.AddComponent(std::make_unique<MeshComponent>(&m_cubeMash, m_cameraMaterial));
+	camera.AddComponent(std::make_unique<CameraComponent>());
+	camera.GetTransform().position.y = 3;
+	camera.GetTransform().position.z = 20;
+
+	m_mainCamera = &camera;
+
+	return &camera;
 }
 
 GameObject* App::CreatePlane()
@@ -306,6 +324,7 @@ GameObject* App::CreatePlane()
 	plane.AddComponent(std::make_unique<MeshComponent>(&m_planeMash, m_planeMaterial));
 	plane.AddComponent(std::make_unique<BoxCollider>());
 	//plane.AddComponent(std::make_unique<RigidbodyComponent>());
+	//plane.AddComponent(std::make_unique<CameraComponent>());
 
 	m_ground = &plane;
 	return &plane;
@@ -394,6 +413,8 @@ void App::LoadAmbinetLightScene()
 
 void App::CreateDefaultScene()
 {
-	m_editorLayer.SetSelectedObject(CreateCube());
+	m_editorLayer.SetSelectedObject(CreateCamera());
+	CreateCube();
 	CreatePlane();
+	
 }
