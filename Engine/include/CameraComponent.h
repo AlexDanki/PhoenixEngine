@@ -6,7 +6,7 @@ class CameraComponent : public Component
 {
 public:
 
-	float FOV = 45.0f;
+	float FOV = 60.0f;
 	float nearPlane = 0.1f;
 	float farPlane = 500.0f;
 	bool primary = true;

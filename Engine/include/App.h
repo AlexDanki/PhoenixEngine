@@ -76,9 +76,9 @@ private:
 
 	//GameObject* CreateObjectFromType(ObjectType type);
 	GameObject* CreateObjectFromData(SceneObjectData data);
-	GameObject* CreateGameObject(std::string name, ObjectType type, std::string& assetPath , Material& material);
-	GameObject* CreateAssetObject(std::string& assetPath);
-	Material* CreateMaterial(Shader* shader);
+	GameObject* CreateGameObject(std::string name, ObjectType type, const char* assetPath, const char* texturePath, Material& material);
+	GameObject* CreateAssetObject(std::string& assetPath, std::string& texturePath);
+	Material* CreateMaterial(std::string& texturePath);
 	void CreateDefaultScene();
 
 	void LoadScene();

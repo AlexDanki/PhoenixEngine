@@ -33,12 +33,19 @@ struct SceneObjectData
 
 	// Object Asset
 	std::string assetPath;
+	std::string texturePath;
 
 	// Object BoxCollider
 	bool hasBoxCollider = false;
 	bool isTrigger = false;
-	glm::vec3 center = glm::vec3(0.0f);
-	glm::vec3 size = glm::vec3(1.0f);
+	glm::vec3 boxCenter = glm::vec3(0.0f);
+	glm::vec3 boxSize = glm::vec3(1.0f);
+
+	// Object Rigidbodie
+	bool hasRigidbody = false;
+	glm::vec3 rigidbodyVelocity = glm::vec3(0.0f);
+	bool useGravit = false;
+	float gravitScale = 1.0f;
 };
 
 class Scene;

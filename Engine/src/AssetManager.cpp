@@ -5,6 +5,7 @@
 #include <sstream>
 #include "Shader.h"
 #include "MeshAsset.h"
+#include "Material.h"
 
 AssetManager::AssetManager()
 {
@@ -88,6 +89,16 @@ MeshAsset* AssetManager::LoadMeshAsset(const std::string& path)
 	m_meshAssets[path] = std::move(meshAsset);
 
 	return meshAssetPtr;
+}
+
+Material* AssetManager::CreateMaterial(const std::string& TexturePath, Shader* shader)
+{
+	auto material = std::make_unique<Material>(shader);
+	material->SetTexture(LoadTexture(TexturePath));
+	Material* materialPtr = material.get();
+	m_materiais.push_back(std::move(material));
+
+	return materialPtr;
 }
 
 std::string AssetManager::ReadFile(const std::string& path)

@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include "Material.h"
 #include "MeshComponent.h"
+#include "RigidbodyComponent.h"
 #include "App.h"
 #include "DirectionalLight.h"
 #include "AmbienteLight.h"
@@ -121,21 +122,39 @@ bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 			<< data.assetPath
 
 			<< " "
+			<< data.texturePath
+
+			<< " "
 			<< data.hasBoxCollider
 			<< " "
 			<< data.isTrigger
+
 			<< " "
-			<< data.center.x
+			<< data.boxCenter.x
 			<< " "
-			<< data.center.y
+			<< data.boxCenter.y
 			<< " "
-			<< data.center.z
+			<< data.boxCenter.z
+
 			<< " "
-			<< data.size.x
+			<< data.boxSize.x
 			<< " "
-			<< data.size.y
+			<< data.boxSize.y
 			<< " "
-			<< data.size.z
+			<< data.boxSize.z
+
+			<< " "
+			<< data.hasRigidbody
+			<< " "
+			<< data.rigidbodyVelocity.x
+			<< " "
+			<< data.rigidbodyVelocity.y
+			<< " "
+			<< data.rigidbodyVelocity.z
+			<< " "
+			<< data.useGravit
+			<< " "
+			<< data.gravitScale
 			<< "\n";
 
 	}
@@ -173,18 +192,33 @@ SceneObjectData SceneSerializer::BuildSceneObjectData(GameObject& object)
 
 	data.color = materialColor;
 	data.assetPath = object.GetAssetPath();
+	data.texturePath = object.GetTexturePath();
 
 	if(auto boxCollider = object.GetComponent<BoxCollider>())
 	{
 		data.hasBoxCollider = true;
 		data.isTrigger = boxCollider->isTrigger;
-		data.center = boxCollider->GetCenter();
-		data.size = boxCollider->GetSize();
+		data.boxCenter = boxCollider->GetCenter();
+		data.boxSize = boxCollider->GetSize();
 
 	}
 	else
 	{
 		data.hasBoxCollider = false;
+	}
+
+	if(auto rigidbody = object.GetComponent<RigidbodyComponent>())
+	{
+		data.hasRigidbody = true;
+		data.rigidbodyVelocity.x = rigidbody->velocity.x;
+		data.rigidbodyVelocity.y = rigidbody->velocity.y;
+		data.rigidbodyVelocity.z = rigidbody->velocity.z;
+		data.useGravit = rigidbody->useGravity;
+		data.gravitScale = rigidbody->gravityScale;
+	}
+	else
+	{
+		data.hasRigidbody = false;
 	}
 
 	return data;
@@ -323,17 +357,27 @@ std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::
 		ss >> data.color.y;
 		ss >> data.color.z;
 		ss >> data.assetPath;
+		ss >> data.texturePath;
 
 		ss >> data.hasBoxCollider;
 		ss >> data.isTrigger;
 
-		ss >> data.center.x;
-		ss >> data.center.y;
-		ss >> data.center.z;
+		ss >> data.boxCenter.x;
+		ss >> data.boxCenter.y;
+		ss >> data.boxCenter.z;
 
-		ss >> data.size.x;
-		ss >> data.size.y;
-		ss >> data.size.z;
+		ss >> data.boxSize.x;
+		ss >> data.boxSize.y;
+		ss >> data.boxSize.z;
+
+		ss >> data.hasRigidbody;
+
+		ss >> data.rigidbodyVelocity.x;
+		ss >> data.rigidbodyVelocity.y;
+		ss >> data.rigidbodyVelocity.z;
+
+		ss >> data.useGravit;
+		ss >> data.gravitScale;
 
 		ObjectType objectType;
 

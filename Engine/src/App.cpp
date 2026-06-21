@@ -66,14 +66,13 @@ void App::Run()
 	{
 		std::cout << "Erro ao carregar textura: AreiaTex" << std::endl;
 	}
-	// Configura Material 02
-	m_defaultTexture = m_assetManager.LoadTexture("Textures/DefaultTex.png");
+
 	if (!m_defaultTexture)
 	{
 		std::cout << "Erro ao carregar textura: AreiaTex" << std::endl;
 	}
 	m_paddleTexture = m_assetManager.LoadTexture("Textures/PaddleTex.png");
-	if (!m_defaultTexture)
+	if (!m_paddleTexture)
 	{
 		std::cout << "Erro ao carregar textura: AreiaTex" << std::endl;
 	}
@@ -82,11 +81,7 @@ void App::Run()
 	// Mesh
 	m_planeMesh.CreatePlane();
 	m_cubeMesh.CreateCube();
-	// Material
-	Material planeMaterial(m_litShader);
-	planeMaterial.SetMaterialColor(glm::vec3(1, 1, 1));
-	planeMaterial.SetTexture(groundTex);
-	m_planeMaterial = &planeMaterial;
+
 
 	// AssetMesh 
 	m_etAsset = m_assetManager.LoadMeshAsset("Models/Et.obj");
@@ -98,11 +93,16 @@ void App::Run()
 	}
 
 	// Material
+	//Texture* cubeTexture = m_assetManager.LoadTexture("Textures/GroundTex.png");
 	Material cubeMaterial(m_litShader);
-	cubeMaterial.SetTexture(m_defaultTexture);
-	cubeMaterial.SetMaterialColor({ 1, 1, 1 });
+	cubeMaterial.SetTexture(groundTex);
+	cubeMaterial.SetMaterialColor(glm::vec3(1, 1, 1));
 	m_cubeMaterial = &cubeMaterial;
-	// Material
+
+	Material planeMaterial(m_litShader);
+	planeMaterial.SetMaterialColor(glm::vec3(1, 1, 1));
+	planeMaterial.SetTexture(groundTex);
+	m_planeMaterial = &planeMaterial;
 
 	Material cameraMaterial(m_litShader);
 	cameraMaterial.SetTexture(m_cameraTexture);
@@ -256,36 +256,6 @@ void App::ProcessInput()
 {
 	// Futuramente janela + inputs
 	GLFWwindow* window = m_window.GetNativeWindow();
-
-	/*if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
-		m_camera.GetTransform().position.z -= 0.05f;
-	}
-
-	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		m_camera.GetTransform().position.z += 0.05f;
-	}
-
-	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-		m_camera.GetTransform().position.x -= 0.05f;
-	}
-
-	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		m_camera.GetTransform().position.x += 0.05f;
-	}
-
-	if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-	{
-		m_camera.GetTransform().position.y -= 0.05f;
-	}
-
-	if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-	{
-		m_camera.GetTransform().position.y += 0.05f;
-	}*/
 }
 
 void App::Update(float dt)
@@ -303,13 +273,23 @@ void App::Render()
 
 }
 
-GameObject* App::CreateGameObject(std::string name, ObjectType type,  std::string& assetPath , Material& material)
+GameObject* App::CreateGameObject(std::string name, ObjectType type,  const char* assetPath, const char* texturePath, Material& material)
 {
 	Mesh* mesh = &m_assetManager.LoadMeshAsset(assetPath)->GetMesh();
 
 	std::string objectName = m_scene.GenerateUniqueName(name);
 	GameObject& object = m_scene.CreateGameObject(name, type);
-	object.AddComponent(std::make_unique<MeshComponent>(mesh, &material));
+
+	Material& _material = material;
+	Log::Info("Esse aqui é o path: " + static_cast<std::string>(texturePath) + " do " + object.GetName());
+
+	object.SetTexturePath(texturePath);
+
+	_material.SetTexture(m_assetManager.LoadTexture(texturePath));
+
+	object.AddComponent(std::make_unique<MeshComponent>(mesh, &_material));
+	
+
 	if(type == ObjectType::Camera)
 	{
 		object.AddComponent(std::make_unique<CameraComponent>());
@@ -325,15 +305,15 @@ GameObject* App::CreateGameObject(std::string name, ObjectType type,  std::strin
 	return &object;
 }
 
-GameObject* App::CreateAssetObject(std::string& assetPath)
+GameObject* App::CreateAssetObject(std::string& assetPath, std::string& texturePath)
 {
 	MeshAsset* asset = m_assetManager.LoadMeshAsset(assetPath);
 
-	Material* material = m_cubeMaterial;
-
+	
 	GameObject* object = &m_scene.CreateGameObject("Asset", ObjectType::Asset);
+	Material* material = m_assetManager.CreateMaterial(texturePath, m_litShader);
 	object->AddComponent(std::make_unique<MeshComponent>(&asset->GetMesh(), material));
-	object->SetAssetPath(assetPath);
+	object->SetAssetPath(assetPath.c_str());
 	return object;
 }
 
@@ -343,15 +323,26 @@ GameObject* App::CreateCube()
 	std::string name = m_scene.GenerateUniqueName("Cube");
 	GameObject& cube = m_scene.CreateGameObject(name, ObjectType::Cube);
 	cube.AddComponent(std::make_unique<MeshComponent>(&m_cubeMesh, m_cubeMaterial));
-	//cube.AddComponent(std::make_unique<MeshComponent>(&m_paddleAsset->GetMesh(), m_cubeMaterial));
-	//cube.AddComponent(std::make_unique<BoxCollider>());
-	//cube.AddComponent(std::make_unique<RigidbodyComponent>());
+	m_cubeMaterial->SetTexture(m_assetManager.LoadTexture("Textures/DefaultTex.png"));
 	cube.GetTransform().position.z = 0;
 
-	m_player = &cube;
-
+	//m_player = &cube;
 	return &cube;
 }
+
+GameObject* App::CreatePlane()
+{
+	
+	// Cria objeto 02
+	std::string name = m_scene.GenerateUniqueName("Plane");
+	GameObject& plane = m_scene.CreateGameObject(name, ObjectType::Plane);
+	plane.AddComponent(std::make_unique<MeshComponent>(&m_planeMesh, m_planeMaterial));
+	plane.AddComponent(std::make_unique<BoxCollider>());
+
+	//m_ground = &plane;
+	return &plane;
+}
+
 GameObject* App::CreateCamera()
 {
 
@@ -367,21 +358,6 @@ GameObject* App::CreateCamera()
 	return &camera;
 }
 
-GameObject* App::CreatePlane()
-{
-	
-	// Cria objeto 02
-	std::string name = m_scene.GenerateUniqueName("Plane");
-	GameObject& plane = m_scene.CreateGameObject(name, ObjectType::Plane);
-	plane.AddComponent(std::make_unique<MeshComponent>(&m_planeMesh, m_planeMaterial));
-	plane.AddComponent(std::make_unique<BoxCollider>());
-	//plane.AddComponent(std::make_unique<RigidbodyComponent>());
-	//plane.AddComponent(std::make_unique<CameraComponent>());
-
-	m_ground = &plane;
-	return &plane;
-}
-
 GameObject* App::CreateObjectFromData(SceneObjectData data)
 {
 	switch(data.type)
@@ -394,10 +370,10 @@ GameObject* App::CreateObjectFromData(SceneObjectData data)
 
 		case ObjectType::Camera:
 			return CreateGameObject("Camera", ObjectType::Camera,
-				static_cast<std::string>("Models/Paddle.fbx"), *m_paddleMaterial);
+				"Models/Paddle.fbx", "Textures/PaddleTex.png", *m_paddleMaterial);
 
 		case ObjectType::Asset:
-			return CreateAssetObject(data.assetPath);
+			return CreateAssetObject(data.assetPath, data.texturePath);
 
 		default:
 			return nullptr;
@@ -416,6 +392,7 @@ void App::LoadScene()
 		{
 			GameObject* object = CreateObjectFromData(data);
 			object->SetName(data.name);
+			object->SetTexturePath(data.texturePath.c_str());
 			if (m_editorLayer.GetSelectedObject() == nullptr) { m_editorLayer.SetSelectedObject(object); }
 
 			Transform& transform = object->GetTransform();
@@ -443,12 +420,22 @@ void App::LoadScene()
 
 				boxCollider->isTrigger = data.isTrigger;
 
-				boxCollider->SetCenter(data.center);
-				boxCollider->SetSize(data.size);
+				boxCollider->SetCenter(data.boxCenter);
+				boxCollider->SetSize(data.boxSize);
 				
 
 			}
 
+			if(data.hasRigidbody)
+			{
+				object->AddComponent(std::make_unique<RigidbodyComponent>());
+				RigidbodyComponent* rigidBody = object->GetComponent<RigidbodyComponent>();
+				rigidBody->gravityScale = data.gravitScale;
+				rigidBody->useGravity = data.useGravit;
+				rigidBody->velocity.x = data.rigidbodyVelocity.x;
+				rigidBody->velocity.y = data.rigidbodyVelocity.y;
+				rigidBody->velocity.z = data.rigidbodyVelocity.z;
+			}
 		}
 	}
 }
@@ -485,9 +472,17 @@ void App::LoadAmbinetLightScene()
 
 void App::CreateDefaultScene()
 {
-	m_mainCamera = CreateGameObject("Main_Cam", ObjectType::Camera, static_cast<std::string>("Models/Paddle.fbx"), *m_paddleMaterial);
+	m_mainCamera = CreateGameObject("Main_Cam", ObjectType::Camera, "Models/Paddle.fbx" , "Textures/PaddleTex.png", *m_paddleMaterial);
 	m_editorLayer.SetSelectedObject(m_mainCamera);
 	CreateCube();
 	CreatePlane();
-	m_paddle = CreateGameObject("Paddle", ObjectType::Asset, static_cast<std::string>("Models/Paddle.fbx"), *m_paddleMaterial);
+	m_paddle = CreateGameObject("Paddle", ObjectType::Asset, "Models/Paddle.fbx", "Textures/PaddleTex.png", *m_paddleMaterial);
+}
+
+Material* App::CreateMaterial(std::string& texturePath)
+{
+	Material* material = new Material(m_litShader);
+	material->SetTexture(m_assetManager.LoadTexture(texturePath));
+	material->SetMaterialColor(glm::vec3(1.0f));
+	return material;
 }

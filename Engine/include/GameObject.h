@@ -90,8 +90,12 @@ public:
 
 	}
 
-	void SetAssetPath(std::string& path) { m_assetPath = path; }
+	void SetAssetPath(const char* path) { m_assetPath = path; }
+	void SetTexturePath(const char* path) { m_texturePath = path; }
+
 	std::string GetAssetPath() { return m_assetPath; }
+	std::string GetTexturePath() { return m_texturePath; }
+
 	void SetScriptComponentName(std::string& scriptName);
 	std::vector<std::string> GetScriptsComponentsNames(){return m_scriptsComponentsNames; }
 	bool FindInScriptComponentsNames(std::string scriptName);
@@ -99,6 +103,7 @@ public:
 private:
 	std::string m_name;
 	std::string m_assetPath = "Engine";
+	std::string m_texturePath = "Engine";
 	Transform m_transform;
 	ObjectType m_type;
 	std::vector<std::unique_ptr<Component>> m_components;
