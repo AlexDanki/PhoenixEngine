@@ -14,6 +14,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include "App.h"
+#include "ScriptRegistry.h"
 
 namespace ui = ImGui;
 
@@ -60,7 +61,7 @@ void EditorLayer::DrawInspector()
 		ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
 		ui::Checkbox("Is Dinamic", &m_selectedObject->dinamic);
 
-		if (ui::CollapsingHeader("Transform"))
+		if (ui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::Text("Transform");
 			ImGui::DragFloat3("Position", &transform.position.x, 0.1f);
@@ -101,6 +102,7 @@ void EditorLayer::DrawInspector()
 
 	if (auto collider = m_selectedObject->GetComponent<BoxCollider>())
 	{
+
 		if (ui::CollapsingHeader("BoxCollider"))
 		{
 			ui::Text("Box Collider");
@@ -111,25 +113,25 @@ void EditorLayer::DrawInspector()
 				collider->isTrigger = trigger;
 			}
 
-			ui::DragFloat3("Center", &collider->center.x, 0.1);
+			ui::DragFloat3("Center", &collider->m_center.x, 0.1);
 
 			ui::Checkbox("Uniform Scale", &m_uniformBoxColliderSize);
 
+			
 			if (m_uniformBoxColliderSize)
 			{
+				
 				float size = 0.0;
 				if(ui::DragFloat("all(x,y,z)", &size, 0.1))
 				{
-					collider->size.x += size;
-					collider->size.y += size;
-					collider->size.z += size;
+					collider->SetSize(glm::vec3(collider->GetSize().x + size, collider->GetSize().y + size, collider->GetSize().z + size));
 					collider->UpdateBounds();
 				}
 			}
 
 			if (!m_uniformBoxColliderSize)
 			{
-				ui::DragFloat3("Size", &collider->size.x, 0.1);
+				ui::DragFloat3("Size", &collider->m_size.x, 0.1);
 				collider->UpdateBounds();
 			}
 		}
@@ -157,11 +159,11 @@ void EditorLayer::DrawInspector()
 		}
 	}
 
-	if (auto script = m_selectedObject->GetComponent<ScriptComponent>())
+	if (ImGui::CollapsingHeader("Script"))
 	{
-		if (ImGui::CollapsingHeader("Script"))
+		for (auto scriptName : m_selectedObject->GetScriptsComponentsNames())
 		{
-			ImGui::Text("Script Component");
+			ui::Text(scriptName.c_str());
 		}
 	}
 	ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
@@ -197,9 +199,26 @@ void EditorLayer::DrawInspector()
 		}
 		ui::Separator();
 		// Script não precisa ser verificado pq sempre podem ser adicionados
-		if (ui::MenuItem("Script"))
+		if(ui::CollapsingHeader("Scripts"))
 		{
-			m_selectedObject->AddComponent(std::make_unique<RotatorScript>());
+			auto registereds = ScriptRegistry::GetRegisteredScripts();
+
+			for(auto script : registereds)
+			{
+				std::string scriptName = script.first;
+				if(!m_selectedObject->FindInScriptComponentsNames(scriptName))
+				{
+					if (ui::Button(scriptName.c_str()))
+					{
+						auto script = ScriptRegistry::Create(scriptName);
+						if (script)
+						{
+							m_selectedObject->AddComponent(std::move(script));
+							m_selectedObject->SetScriptComponentName(scriptName);
+						}
+					}
+				}
+			}
 		}
 		ui::EndPopup();
 	}

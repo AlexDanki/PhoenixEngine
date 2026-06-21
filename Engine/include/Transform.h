@@ -19,5 +19,7 @@ public:
 
 	glm::mat4 GetMatrix() const;
 	glm::vec3 GetPosition();
+	glm::vec3 GetRotation();
+	glm::vec3 GetScale();
 
 };

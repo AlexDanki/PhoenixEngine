@@ -10,6 +10,7 @@
 #include "App.h"
 #include "DirectionalLight.h"
 #include "AmbienteLight.h"
+#include "Log.h"
 
 bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 {
@@ -59,50 +60,82 @@ bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 
 	for(auto& object : scene.GetGameObjects())
 	{
-		Transform& transform = object->GetTransform();
-		glm::vec3 materialColor = object->GetComponent<MeshComponent>()->GetMaterial()->GetMaterialColor();
+		/*Transform& transform = object->GetTransform();
+		glm::vec3 materialColor = object->GetComponent<MeshComponent>()->GetMaterial()->GetMaterialColor();*/
 
+		SceneObjectData data = BuildSceneObjectData(*object);
+
+		Log::Info(data.name);
 		std::string objectType = " ";
 
-		if(object->GetType() == ObjectType::Cube)
+		if(data.type == ObjectType::Cube)
 		{
 			objectType = "Cube";
 		}
-		else if(object->GetType() == ObjectType::Plane)
+		else if(data.type == ObjectType::Plane)
 		{
 			objectType = "Plane";
 		}
+		else if(data.type == ObjectType::Camera)
+		{
+			objectType = "Camera";
+		}
+		else if(data.type == ObjectType::Asset)
+		{
+			objectType = "Asset";
+		}
 
-		file<< objectType
+
+		file << objectType
 			<< " "
-			<< object->GetName() 
+			<< data.name
 			<< " "
-			<< transform.position.x 
+			<< data.position.x
 			<< " "
-			<< transform.position.y 
+			<< data.position.y
 			<< " "
-			<< transform.position.z 
+			<< data.position.z
 
 			<< " "
-			<< transform.rotation.x
+			<< data.rotation.x
 			<< " "
-			<< transform.rotation.y
+			<< data.rotation.y
 			<< " "
-			<< transform.rotation.z
+			<< data.rotation.z
 
 			<< " "
-			<< transform.scale.x
+			<< data.scale.x
 			<< " "
-			<< transform.scale.y
+			<< data.scale.y
 			<< " "
-			<< transform.scale.z
+			<< data.scale.z
 
-			<<" "
-			<< materialColor.x
-			<<" "
-			<< materialColor.y
-			<<" "
-			<< materialColor.z
+			<< " "
+			<< data.color.x
+			<< " "
+			<< data.color.y
+			<< " "
+			<< data.color.z
+
+			<< " "
+			<< data.assetPath
+
+			<< " "
+			<< data.hasBoxCollider
+			<< " "
+			<< data.isTrigger
+			<< " "
+			<< data.center.x
+			<< " "
+			<< data.center.y
+			<< " "
+			<< data.center.z
+			<< " "
+			<< data.size.x
+			<< " "
+			<< data.size.y
+			<< " "
+			<< data.size.z
 			<< "\n";
 
 	}
@@ -112,7 +145,53 @@ bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 	return true;
 }
 
-bool SceneSerializer::Load(Scene& scene, const std::string& path)
+SceneObjectData SceneSerializer::BuildSceneObjectData(GameObject& object)
+{
+	
+
+	SceneObjectData data;
+
+	data.type = object.GetType();
+	data.name = object.GetName();
+
+
+	Transform& transform = object.GetTransform();
+
+	data.position.x = transform.position.x;
+	data.position.y = transform.position.y;
+	data.position.z = transform.position.z;
+
+	data.rotation.x = transform.rotation.x;
+	data.rotation.y = transform.rotation.y;
+	data.rotation.z = transform.rotation.z;
+
+	data.scale.x = transform.scale.x;
+	data.scale.y = transform.scale.y;
+	data.scale.z = transform.scale.z;
+
+	glm::vec3 materialColor = object.GetComponent<MeshComponent>()->GetMaterial()->GetMaterialColor();
+
+	data.color = materialColor;
+	data.assetPath = object.GetAssetPath();
+
+	if(auto boxCollider = object.GetComponent<BoxCollider>())
+	{
+		data.hasBoxCollider = true;
+		data.isTrigger = boxCollider->isTrigger;
+		data.center = boxCollider->GetCenter();
+		data.size = boxCollider->GetSize();
+
+	}
+	else
+	{
+		data.hasBoxCollider = false;
+	}
+
+	return data;
+
+}
+
+/*bool SceneSerializer::Load(Scene& scene, const std::string& path)
 {
 	std::ifstream file(path);
 
@@ -192,7 +271,7 @@ bool SceneSerializer::Load(Scene& scene, const std::string& path)
 	}
 
 	return true;
-}
+}*/
 
 std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::string& path)
 {
@@ -243,6 +322,18 @@ std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::
 		ss >> data.color.x;
 		ss >> data.color.y;
 		ss >> data.color.z;
+		ss >> data.assetPath;
+
+		ss >> data.hasBoxCollider;
+		ss >> data.isTrigger;
+
+		ss >> data.center.x;
+		ss >> data.center.y;
+		ss >> data.center.z;
+
+		ss >> data.size.x;
+		ss >> data.size.y;
+		ss >> data.size.z;
 
 		ObjectType objectType;
 
@@ -253,6 +344,12 @@ std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::
 		else if (typeString == "Plane")
 		{
 			objectType = ObjectType::Plane;
+		}else if (typeString == "Camera")
+		{
+			objectType = ObjectType::Camera;
+		}else if (typeString == "Asset")
+		{
+			objectType = ObjectType::Asset;
 		}
 
 		data.type = objectType;

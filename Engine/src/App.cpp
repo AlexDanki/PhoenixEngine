@@ -15,8 +15,11 @@
 #include "OBJLoader.h"
 #include "MeshAsset.h"
 #include "RigidbodyComponent.h"
+#include "PaddleController.h"
 #include "RotatorScript.h"
 #include "Input.h"
+#include "Log.h"
+#include "ScriptRegistry.h"
 
 namespace ui = ImGui;
 
@@ -24,7 +27,8 @@ void InterfaceImGui();
 
 void App::Run()
 {
-
+	ScriptRegistry::Register("PaddleController", []() { return std::make_unique<PaddleController>(); });
+	ScriptRegistry::Register("TransformRotator", []() { return std::make_unique<RotatorScript>(); });
 	//OBJLoader::Loader("Models/Et.obj", glm::vec3(0,0,0), glm::vec3(0, 0, 0));
 
 	std::cout << "Engine Started" << std::endl;
@@ -63,7 +67,12 @@ void App::Run()
 		std::cout << "Erro ao carregar textura: AreiaTex" << std::endl;
 	}
 	// Configura Material 02
-	m_defaultTexture = m_assetManager.LoadTexture("Textures/ETImg.png");
+	m_defaultTexture = m_assetManager.LoadTexture("Textures/DefaultTex.png");
+	if (!m_defaultTexture)
+	{
+		std::cout << "Erro ao carregar textura: AreiaTex" << std::endl;
+	}
+	m_paddleTexture = m_assetManager.LoadTexture("Textures/PaddleTex.png");
 	if (!m_defaultTexture)
 	{
 		std::cout << "Erro ao carregar textura: AreiaTex" << std::endl;
@@ -71,16 +80,22 @@ void App::Run()
 
 	
 	// Mesh
-	m_planeMash.CreatePlane();
-	m_cubeMash.CreateCube();
+	m_planeMesh.CreatePlane();
+	m_cubeMesh.CreateCube();
 	// Material
 	Material planeMaterial(m_litShader);
 	planeMaterial.SetMaterialColor(glm::vec3(1, 1, 1));
 	planeMaterial.SetTexture(groundTex);
 	m_planeMaterial = &planeMaterial;
 
-	// Mesh
+	// AssetMesh 
 	m_etAsset = m_assetManager.LoadMeshAsset("Models/Et.obj");
+	m_paddleAsset = m_assetManager.LoadMeshAsset("Models/Paddle.fbx");
+
+	if(m_paddleAsset)
+	{
+		Log::Info("Carregou!");
+	}
 
 	// Material
 	Material cubeMaterial(m_litShader);
@@ -93,6 +108,11 @@ void App::Run()
 	cameraMaterial.SetTexture(m_cameraTexture);
 	cameraMaterial.SetMaterialColor({ 1, 1, 1 });
 	m_cameraMaterial = &cameraMaterial;
+
+	Material paddleMaterial(m_litShader);
+	paddleMaterial.SetTexture(m_paddleTexture);
+	paddleMaterial.SetMaterialColor({ 1, 1, 1 });
+	m_paddleMaterial = &paddleMaterial;
 
 	// Posiciona Camera
 	m_camera.GetTransform().position.x = 0.0f;
@@ -210,7 +230,7 @@ void App::Run()
 			m_renderer.DrawTransformGizmos(*m_editorLayer.GetSelectedObject(), renderContext, aspect);
 			if(m_editorLayer.GetSelectedObject()->GetComponent<BoxCollider>())
 			{
-				m_renderer.DrawBoxCollider(*m_editorLayer.GetSelectedObject()->GetComponent<BoxCollider>(), m_camera.GetViewProjectionMatrix(aspect));
+				m_renderer.DrawBoxCollider(*m_editorLayer.GetSelectedObject()->GetComponent<BoxCollider>(), m_scene.GetPrimaryCamera()->GetViewProjection(aspect));
 
 			}
 		}
@@ -283,17 +303,49 @@ void App::Render()
 
 }
 
+GameObject* App::CreateGameObject(std::string name, ObjectType type,  std::string& assetPath , Material& material)
+{
+	Mesh* mesh = &m_assetManager.LoadMeshAsset(assetPath)->GetMesh();
+
+	std::string objectName = m_scene.GenerateUniqueName(name);
+	GameObject& object = m_scene.CreateGameObject(name, type);
+	object.AddComponent(std::make_unique<MeshComponent>(mesh, &material));
+	if(type == ObjectType::Camera)
+	{
+		object.AddComponent(std::make_unique<CameraComponent>());
+		object.GetTransform().position.y = 4.3;
+		object.GetTransform().position.z = 23;
+	}
+
+	if(object.GetType() == ObjectType::Asset)
+	{
+		object.SetAssetPath(assetPath);
+	}
+
+	return &object;
+}
+
+GameObject* App::CreateAssetObject(std::string& assetPath)
+{
+	MeshAsset* asset = m_assetManager.LoadMeshAsset(assetPath);
+
+	Material* material = m_cubeMaterial;
+
+	GameObject* object = &m_scene.CreateGameObject("Asset", ObjectType::Asset);
+	object->AddComponent(std::make_unique<MeshComponent>(&asset->GetMesh(), material));
+	object->SetAssetPath(assetPath);
+	return object;
+}
 
 GameObject* App::CreateCube()
 {
 
 	std::string name = m_scene.GenerateUniqueName("Cube");
 	GameObject& cube = m_scene.CreateGameObject(name, ObjectType::Cube);
-	cube.AddComponent(std::make_unique<MeshComponent>(&m_cubeMash, m_cubeMaterial));
-	//cube.AddComponent(std::make_unique<MeshComponent>(&m_etAsset->GetMesh(), m_cubeMaterial));
+	cube.AddComponent(std::make_unique<MeshComponent>(&m_cubeMesh, m_cubeMaterial));
+	//cube.AddComponent(std::make_unique<MeshComponent>(&m_paddleAsset->GetMesh(), m_cubeMaterial));
 	//cube.AddComponent(std::make_unique<BoxCollider>());
 	//cube.AddComponent(std::make_unique<RigidbodyComponent>());
-	cube.AddComponent(std::make_unique<RotatorScript>());
 	cube.GetTransform().position.z = 0;
 
 	m_player = &cube;
@@ -321,7 +373,7 @@ GameObject* App::CreatePlane()
 	// Cria objeto 02
 	std::string name = m_scene.GenerateUniqueName("Plane");
 	GameObject& plane = m_scene.CreateGameObject(name, ObjectType::Plane);
-	plane.AddComponent(std::make_unique<MeshComponent>(&m_planeMash, m_planeMaterial));
+	plane.AddComponent(std::make_unique<MeshComponent>(&m_planeMesh, m_planeMaterial));
 	plane.AddComponent(std::make_unique<BoxCollider>());
 	//plane.AddComponent(std::make_unique<RigidbodyComponent>());
 	//plane.AddComponent(std::make_unique<CameraComponent>());
@@ -330,16 +382,23 @@ GameObject* App::CreatePlane()
 	return &plane;
 }
 
-GameObject* App::CreateObjectFromType(ObjectType type)
+GameObject* App::CreateObjectFromData(SceneObjectData data)
 {
-	switch(type)
+	switch(data.type)
 	{
 		case ObjectType::Cube:
 			return CreateCube();
-			break;
+
 		case ObjectType::Plane:
 			return CreatePlane();
-			break;
+
+		case ObjectType::Camera:
+			return CreateGameObject("Camera", ObjectType::Camera,
+				static_cast<std::string>("Models/Paddle.fbx"), *m_paddleMaterial);
+
+		case ObjectType::Asset:
+			return CreateAssetObject(data.assetPath);
+
 		default:
 			return nullptr;
 	}
@@ -355,12 +414,11 @@ void App::LoadScene()
 
 		for(const auto& data : sceneDataObjects)
 		{
-			GameObject* object = CreateObjectFromType(data.type);
+			GameObject* object = CreateObjectFromData(data);
 			object->SetName(data.name);
 			if (m_editorLayer.GetSelectedObject() == nullptr) { m_editorLayer.SetSelectedObject(object); }
-			Transform& transform = object->GetTransform();
-			Material* material = object->GetComponent<MeshComponent>()->GetMaterial();
 
+			Transform& transform = object->GetTransform();
 			transform.position.x = data.position.x;
 			transform.position.y = data.position.y;
 			transform.position.z = data.position.z;
@@ -373,9 +431,23 @@ void App::LoadScene()
 			transform.scale.y = data.scale.y;
 			transform.scale.z = data.scale.z;
 
+			Material* material = object->GetComponent<MeshComponent>()->GetMaterial();
 			material->GetMaterialColor().x = data.color.x;
 			material->GetMaterialColor().y = data.color.y;
 			material->GetMaterialColor().z = data.color.z;
+
+			if(data.hasBoxCollider)
+			{
+				object->AddComponent(std::make_unique<BoxCollider>());
+				BoxCollider* boxCollider = object->GetComponent<BoxCollider>();
+
+				boxCollider->isTrigger = data.isTrigger;
+
+				boxCollider->SetCenter(data.center);
+				boxCollider->SetSize(data.size);
+				
+
+			}
 
 		}
 	}
@@ -413,8 +485,9 @@ void App::LoadAmbinetLightScene()
 
 void App::CreateDefaultScene()
 {
-	m_editorLayer.SetSelectedObject(CreateCamera());
+	m_mainCamera = CreateGameObject("Main_Cam", ObjectType::Camera, static_cast<std::string>("Models/Paddle.fbx"), *m_paddleMaterial);
+	m_editorLayer.SetSelectedObject(m_mainCamera);
 	CreateCube();
 	CreatePlane();
-	
+	m_paddle = CreateGameObject("Paddle", ObjectType::Asset, static_cast<std::string>("Models/Paddle.fbx"), *m_paddleMaterial);
 }

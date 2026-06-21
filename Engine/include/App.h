@@ -38,6 +38,7 @@ private:
 	GameObject* m_player = nullptr;
 	GameObject* m_ground= nullptr;
 	GameObject* m_mainCamera= nullptr;
+	GameObject* m_paddle= nullptr;
 
 	SceneSerializer m_sceneSerializer;
 	EditorLayer m_editorLayer;
@@ -48,16 +49,23 @@ private:
 
 	// Assets
 	Shader* m_litShader;
+
 	Texture* m_defaultTexture;
 	Texture* m_cameraTexture;
+	Texture* m_paddleTexture;
+	Texture* m_ballTexture;
 
 	Material* m_cubeMaterial = nullptr; // Cube
 	Material* m_cameraMaterial = nullptr; // Cube
-	MeshAsset* m_etAsset = nullptr;
-
 	Material* m_planeMaterial = nullptr; // Plane
-	Mesh m_planeMash;	
-	Mesh m_cubeMash;	
+	Material* m_paddleMaterial = nullptr; // Paddle
+	Material* m_ballMaterial = nullptr; // Ball
+
+	MeshAsset* m_etAsset = nullptr;
+	MeshAsset* m_paddleAsset = nullptr;
+	Mesh m_planeMesh;	
+	Mesh m_cubeMesh;	
+	
 	//Material
 
 	void Init();
@@ -66,8 +74,11 @@ private:
 	void FixedUpdate(float dt);
 	void Render();
 
-	GameObject* CreateObjectFromType(ObjectType type);
-
+	//GameObject* CreateObjectFromType(ObjectType type);
+	GameObject* CreateObjectFromData(SceneObjectData data);
+	GameObject* CreateGameObject(std::string name, ObjectType type, std::string& assetPath , Material& material);
+	GameObject* CreateAssetObject(std::string& assetPath);
+	Material* CreateMaterial(Shader* shader);
 	void CreateDefaultScene();
 
 	void LoadScene();

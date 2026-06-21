@@ -15,7 +15,7 @@ void BoxCollider::OnAttach()
 
 void BoxCollider::UpdateBounds()
 {
-	glm::vec3 halfSize = size * 0.5f;
+	glm::vec3 halfSize = m_size * 0.5f;
 
 	min = -halfSize;
 	max = halfSize;
@@ -59,12 +59,24 @@ bool BoxCollider::Intersects(BoxCollider& other)
 glm::vec3 BoxCollider::GetMin()
 {
 	glm::vec3 worldPosition = glm::vec3(m_transform->position.x, m_transform->position.y, m_transform->position.z);
-	return min + (worldPosition + center);
+	return min + (worldPosition + m_center);
 }
 
 glm::vec3 BoxCollider::GetMax()
 {
 	glm::vec3 worldPosition = glm::vec3(m_transform->position.x, m_transform->position.y, m_transform->position.z);
-	return max + (worldPosition + center);
+	return max + (worldPosition + m_center);
+}
+
+void BoxCollider::SetCenter(glm::vec3 center)
+{
+    m_center = center;
+    UpdateBounds();
+}
+
+void BoxCollider::SetSize(glm::vec3 size)
+{
+    m_size = size;
+    UpdateBounds();
 }
 

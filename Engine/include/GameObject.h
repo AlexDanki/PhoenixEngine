@@ -12,6 +12,7 @@ enum class ObjectType
 	Plane,
 	Cube,
 	Camera,
+	Asset
 };
 
 class GameObject
@@ -89,10 +90,17 @@ public:
 
 	}
 
+	void SetAssetPath(std::string& path) { m_assetPath = path; }
+	std::string GetAssetPath() { return m_assetPath; }
+	void SetScriptComponentName(std::string& scriptName);
+	std::vector<std::string> GetScriptsComponentsNames(){return m_scriptsComponentsNames; }
+	bool FindInScriptComponentsNames(std::string scriptName);
 
 private:
 	std::string m_name;
+	std::string m_assetPath = "Engine";
 	Transform m_transform;
 	ObjectType m_type;
 	std::vector<std::unique_ptr<Component>> m_components;
+	std::vector<std::string> m_scriptsComponentsNames;
 };

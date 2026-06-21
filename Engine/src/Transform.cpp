@@ -20,3 +20,19 @@ glm::vec3 Transform::GetPosition()
 	float z = position.z;
 	return glm::vec3(x, y, z);
 }
+
+glm::vec3 Transform::GetRotation()
+{
+	float x = rotation.x;
+	float y = rotation.y;
+	float z = rotation.z;
+	return glm::vec3(x, y, z);
+}
+
+glm::vec3 Transform::GetScale()
+{
+	float x = scale.x;
+	float y = scale.y;
+	float z = scale.z;
+	return glm::vec3(x, y, z);
+}

@@ -47,3 +47,21 @@ ObjectType GameObject::GetType() const
 {
 	return m_type;
 }
+
+void GameObject::SetScriptComponentName(std::string& scriptName)
+{
+	m_scriptsComponentsNames.push_back(scriptName);
+}
+
+bool GameObject::FindInScriptComponentsNames(std::string scriptName)
+{
+	for(auto curScriptName : m_scriptsComponentsNames)
+	{
+		if(curScriptName == scriptName)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
