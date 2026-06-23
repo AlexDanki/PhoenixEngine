@@ -25,7 +25,10 @@ public:
 	glm::vec3 velocity = glm::vec3(0.0);
 
 	const std::string GetName() const;
+	const std::string GetTag() const { return m_tag; };
+
 	void SetName(const std::string& name) { m_name = name; }
+	void SetTag(const std::string& name) { m_tag = name; }
 
 	Transform& GetTransform();
 	const Transform& GetTransform() const;
@@ -92,6 +95,7 @@ public:
 
 	void SetAssetPath(const char* path) { m_assetPath = path; }
 	void SetTexturePath(const char* path) { m_texturePath = path; }
+	void SetType(ObjectType type) { m_type = type; }
 
 	std::string GetAssetPath() { return m_assetPath; }
 	std::string GetTexturePath() { return m_texturePath; }
@@ -101,7 +105,8 @@ public:
 	bool FindInScriptComponentsNames(std::string scriptName);
 
 private:
-	std::string m_name;
+	std::string m_name = "GameObject";
+	std::string m_tag = "Untagged";
 	std::string m_assetPath = "Engine";
 	std::string m_texturePath = "Engine";
 	Transform m_transform;

@@ -20,20 +20,21 @@ struct DirectionalLightdata
 struct SceneObjectData
 {
 	// Object Info
-	ObjectType type;
-	std::string name;
+	ObjectType type = ObjectType::Asset;
+	std::string name = "GameObject";
+	std::string tag = "Untagged";
 
-	// Object Position
-	glm::vec3 position;
-	glm::vec3 rotation;
-	glm::vec3 scale;
+	// Object Transform
+	glm::vec3 position = glm::vec3(0.0f);
+	glm::vec3 rotation = glm::vec3(0.0f);
+	glm::vec3 scale = glm::vec3(1.0f);
 
 	// Object Material
-	glm::vec3 color;
+	glm::vec3 color = glm::vec3(1.0f);
 
 	// Object Asset
-	std::string assetPath;
-	std::string texturePath;
+	std::string assetPath = "Engine";
+	std::string texturePath = "Engine";
 
 	// Object BoxCollider
 	bool hasBoxCollider = false;
@@ -46,6 +47,9 @@ struct SceneObjectData
 	glm::vec3 rigidbodyVelocity = glm::vec3(0.0f);
 	bool useGravit = false;
 	float gravitScale = 1.0f;
+
+	// Object Scripts Components
+	std::vector<std::string> scriptsNames;
 };
 
 class Scene;

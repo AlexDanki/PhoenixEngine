@@ -392,6 +392,7 @@ void App::LoadScene()
 		{
 			GameObject* object = CreateObjectFromData(data);
 			object->SetName(data.name);
+			object->SetTag(data.tag);
 			object->SetTexturePath(data.texturePath.c_str());
 			if (m_editorLayer.GetSelectedObject() == nullptr) { m_editorLayer.SetSelectedObject(object); }
 
@@ -413,6 +414,7 @@ void App::LoadScene()
 			material->GetMaterialColor().y = data.color.y;
 			material->GetMaterialColor().z = data.color.z;
 
+			// Adiciona BoxCollider
 			if(data.hasBoxCollider)
 			{
 				object->AddComponent(std::make_unique<BoxCollider>());
@@ -426,6 +428,7 @@ void App::LoadScene()
 
 			}
 
+			// Adiciona Rigidbody
 			if(data.hasRigidbody)
 			{
 				object->AddComponent(std::make_unique<RigidbodyComponent>());
@@ -435,6 +438,14 @@ void App::LoadScene()
 				rigidBody->velocity.x = data.rigidbodyVelocity.x;
 				rigidBody->velocity.y = data.rigidbodyVelocity.y;
 				rigidBody->velocity.z = data.rigidbodyVelocity.z;
+			}
+
+			// Adiciona ScriptComponentes
+			for (auto scriptName : data.scriptsNames)
+			{
+				Log::Info(scriptName);
+				object->SetScriptComponentName(scriptName);
+				object->AddComponent(ScriptRegistry::Create(scriptName));
 			}
 		}
 	}

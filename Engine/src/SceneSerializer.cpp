@@ -26,7 +26,10 @@ bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 	const DirectionalLight& dirLight = scene.GetDirectionalLight();
 	const AmbienteLight& ambineteLight = scene.GetAmbienteLight();
 
-	file<<"LIGHTS"
+	file<< "----------------------------------------------\n"
+		<< " PHOENIX_ENGINE V0.1 \n"
+		<< "---------------------------------------------- \n"
+		<<"LIGHTS"
 		<<"\n"
 		<< "DirectionalLight"
 		<< " "
@@ -66,8 +69,7 @@ bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 
 		SceneObjectData data = BuildSceneObjectData(*object);
 
-		Log::Info(data.name);
-		std::string objectType = " ";
+		std::string objectType = "Asset";
 
 		if(data.type == ObjectType::Cube)
 		{
@@ -89,8 +91,12 @@ bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 
 		file << objectType
 			<< " "
+			// Object Info
 			<< data.name
 			<< " "
+			<< data.tag
+			<< " "
+			// Object Transform
 			<< data.position.x
 			<< " "
 			<< data.position.y
@@ -111,6 +117,7 @@ bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 			<< " "
 			<< data.scale.z
 
+			// Object Material
 			<< " "
 			<< data.color.x
 			<< " "
@@ -118,12 +125,15 @@ bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 			<< " "
 			<< data.color.z
 
+			// Object Asset
 			<< " "
 			<< data.assetPath
 
+			// Object Texture
 			<< " "
 			<< data.texturePath
 
+			// Object BoxCollider
 			<< " "
 			<< data.hasBoxCollider
 			<< " "
@@ -143,6 +153,7 @@ bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 			<< " "
 			<< data.boxSize.z
 
+			// Object Rigidbody
 			<< " "
 			<< data.hasRigidbody
 			<< " "
@@ -155,8 +166,15 @@ bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 			<< data.useGravit
 			<< " "
 			<< data.gravitScale
-			<< "\n";
+			<< "\n"
+			<< "SCRIPTS\n";
 
+		for(auto scriptName : data.scriptsNames)
+		{
+			file << scriptName << "\n";
+			
+		}
+		file << "END SCRIPTS\n";
 	}
 
 	file.close();
@@ -170,8 +188,10 @@ SceneObjectData SceneSerializer::BuildSceneObjectData(GameObject& object)
 
 	SceneObjectData data;
 
+	// Object Info
 	data.type = object.GetType();
 	data.name = object.GetName();
+	data.tag = object.GetTag();
 
 
 	Transform& transform = object.GetTransform();
@@ -221,91 +241,11 @@ SceneObjectData SceneSerializer::BuildSceneObjectData(GameObject& object)
 		data.hasRigidbody = false;
 	}
 
+	data.scriptsNames = object.GetScriptsComponentsNames();
+
 	return data;
 
 }
-
-/*bool SceneSerializer::Load(Scene& scene, const std::string& path)
-{
-	std::ifstream file(path);
-
-	if(!file.is_open())
-	{
-		std::cout << "Erro ao abrir Scene.txt: Não foi possível carregar a cena.";
-		return false;
-	}
-
-	std::string line;
-	while(std::getline(file, line))
-	{
-		std::stringstream ss(line);
-
-		std::string objectType;
-		std::string objectName;
-		// Position
-		float px; 
-		float py;
-		float pz;
-
-		// Rotation
-		float rx;
-		float ry;
-		float rz;
-
-		// Scale
-		float sx;
-		float sy;
-		float sz;
-
-		// Material Color
-		float cx;
-		float cy;
-		float cz;
-
-		ss >> objectType;
-		ss >> objectName;
-		ss >> px;
-		ss >> py;
-		ss >> pz;
-
-		ss >> rx;
-		ss >> ry;
-		ss >> rz;
-
-		ss >> sx;
-		ss >> sy;
-		ss >> sz;
-
-		ss >> cx;
-		ss >> cy;
-		ss >> cz;
-
-		for (auto& object : scene.GetGameObjects())
-		{
-			if (object->GetName() == objectName)
-			{
-				object->GetTransform().position.x = px;
-				object->GetTransform().position.y = py;
-				object->GetTransform().position.z = pz;
-
-				object->GetTransform().rotation.x = rx;
-				object->GetTransform().rotation.y = ry;
-				object->GetTransform().rotation.z = rz;
-
-				object->GetTransform().scale.x = sx;
-				object->GetTransform().scale.y = sy;
-				object->GetTransform().scale.z = sz;
-
-				Material* material = object->GetComponent<MeshComponent>()->GetMaterial();
-				material->SetMaterialColor(glm::vec3(cx, cy, cz));
-
-			}
-		}
-		
-	}
-
-	return true;
-}*/
 
 std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::string& path)
 {
@@ -319,11 +259,16 @@ std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::
 	
 
 	std::string line;
-	SceneObjectData data;
+	
 
 	bool startLoad = false;
+	bool readingScripts = false;
+	SceneObjectData currentObject = SceneObjectData();
+
 	while(std::getline(file, line))
 	{
+		
+
 		if(line == "GAMEOBJECTS")
 		{
 			startLoad = true;
@@ -335,51 +280,72 @@ std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::
 			continue;
 		}
 
+		if(line == "SCRIPTS")
+		{
+			readingScripts = true;
+			continue;
+		}
+
+		if(line == "END SCRIPTS")
+		{
+			readingScripts = false;
+			sceneData.push_back(currentObject);
+			currentObject = SceneObjectData();
+			continue;
+		}
+
+		if(readingScripts)
+		{
+			currentObject.scriptsNames.push_back(line);
+			continue;
+		}
+
 		std::stringstream ss(line);
 		std::string typeString;
 		
 		ss >> typeString;
-		ss >> data.name;
+		ss >> currentObject.name;
+		ss >> currentObject.tag;
 
-		ss >> data.position.x;
-		ss >> data.position.y;
-		ss >> data.position.z;
+		ss >> currentObject.position.x;
+		ss >> currentObject.position.y;
+		ss >> currentObject.position.z;
 
-		ss >> data.rotation.x;
-		ss >> data.rotation.y;
-		ss >> data.rotation.z;
+		ss >> currentObject.rotation.x;
+		ss >> currentObject.rotation.y;
+		ss >> currentObject.rotation.z;
 
-		ss >> data.scale.x;
-		ss >> data.scale.y;
-		ss >> data.scale.z;
+		ss >> currentObject.scale.x;
+		ss >> currentObject.scale.y;
+		ss >> currentObject.scale.z;
 
-		ss >> data.color.x;
-		ss >> data.color.y;
-		ss >> data.color.z;
-		ss >> data.assetPath;
-		ss >> data.texturePath;
+		ss >> currentObject.color.x;
+		ss >> currentObject.color.y;
+		ss >> currentObject.color.z;
+		ss >> currentObject.assetPath;
+		ss >> currentObject.texturePath;
 
-		ss >> data.hasBoxCollider;
-		ss >> data.isTrigger;
+		ss >> currentObject.hasBoxCollider;
+		ss >> currentObject.isTrigger;
 
-		ss >> data.boxCenter.x;
-		ss >> data.boxCenter.y;
-		ss >> data.boxCenter.z;
+		ss >> currentObject.boxCenter.x;
+		ss >> currentObject.boxCenter.y;
+		ss >> currentObject.boxCenter.z;
 
-		ss >> data.boxSize.x;
-		ss >> data.boxSize.y;
-		ss >> data.boxSize.z;
+		ss >> currentObject.boxSize.x;
+		ss >> currentObject.boxSize.y;
+		ss >> currentObject.boxSize.z;
 
-		ss >> data.hasRigidbody;
+		ss >> currentObject.hasRigidbody;
 
-		ss >> data.rigidbodyVelocity.x;
-		ss >> data.rigidbodyVelocity.y;
-		ss >> data.rigidbodyVelocity.z;
+		ss >> currentObject.rigidbodyVelocity.x;
+		ss >> currentObject.rigidbodyVelocity.y;
+		ss >> currentObject.rigidbodyVelocity.z;
 
-		ss >> data.useGravit;
-		ss >> data.gravitScale;
+		ss >> currentObject.useGravit;
+		ss >> currentObject.gravitScale;
 
-		ObjectType objectType;
+		ObjectType objectType = ObjectType::Cube;
 
 		if(typeString == "Cube")
 		{
@@ -396,9 +362,9 @@ std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::
 			objectType = ObjectType::Asset;
 		}
 
-		data.type = objectType;
+		// Preencher Scripts
 
-		sceneData.push_back(data);
+		currentObject.type = objectType;
 
 	}
 

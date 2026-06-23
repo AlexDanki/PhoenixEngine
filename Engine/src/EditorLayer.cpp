@@ -55,7 +55,25 @@ void EditorLayer::DrawInspector()
 		Material* material = meshComponent->GetMaterial();
 		Transform& transform = m_selectedObject->GetTransform();
 
-		ImGui::Text(("Object Name: " + m_selectedObject->GetName()).c_str());
+		// Object Name
+		ui::AlignTextToFramePadding();
+		ui::Text("Object Name");
+		ui::SameLine();
+
+		if(ui::InputText("##Object Name", m_nameBuffer, sizeof(m_nameBuffer)))
+		{
+			m_selectedObject->SetName(m_nameBuffer);
+		}
+
+		// Object Tag
+		ui::AlignTextToFramePadding();
+		ui::Text("Tag");
+		ui::SameLine();
+		if(ui::InputText("##Tag Name", m_tagBuffer, sizeof(m_tagBuffer)))
+		{
+			m_selectedObject->SetTag(m_tagBuffer);
+		}
+
 		ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
 		ImGui::Separator();//----------------------------------------
 		ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
@@ -63,9 +81,16 @@ void EditorLayer::DrawInspector()
 
 		if (ui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			ImGui::Text("Transform");
-			ImGui::DragFloat3("Position", &transform.position.x, 0.1f);
-			ImGui::DragFloat3("Rotation", &transform.rotation.x, 0.1f);
+			ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
+			ui::AlignTextToFramePadding();
+			ui::Text("Position");
+			ui::SameLine();
+			ImGui::DragFloat3("##Position", &transform.position.x, 0.1f);
+
+			ui::AlignTextToFramePadding();
+			ui::Text("Rotation");
+			ui::SameLine();
+			ImGui::DragFloat3("##Rotation", &transform.rotation.x, 0.1f);
 
 			ui::Checkbox("Uniform scale", &m_uniformTranformScale);
 
@@ -83,8 +108,12 @@ void EditorLayer::DrawInspector()
 			}
 			if(!m_uniformTranformScale)
 			{
-				ui::DragFloat3("Scale", &transform.scale.x, 0.1);
+				ui::AlignTextToFramePadding();
+				ui::Text("Scale   ");
+				ui::SameLine();
+				ui::DragFloat3("##Scale", &transform.scale.x, 0.1);
 			}
+			ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
 		}
 		if (ui::CollapsingHeader("Mesh Renderer"))
 		{
@@ -159,7 +188,7 @@ void EditorLayer::DrawInspector()
 		}
 	}
 
-	if (ImGui::CollapsingHeader("Script"))
+	if (ImGui::CollapsingHeader("Script", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		for (auto scriptName : m_selectedObject->GetScriptsComponentsNames())
 		{
@@ -225,6 +254,8 @@ void EditorLayer::DrawInspector()
 
 	ImGui::End(); // END INSPECTOR
 }
+
+
 void EditorLayer::DrawHierarchy()
 {
 	ImGui::Begin("Hieranchy");
@@ -232,10 +263,14 @@ void EditorLayer::DrawHierarchy()
 	{
 		bool selected = object.get() == m_selectedObject;
 
-		if (ImGui::Selectable(object->GetName().c_str(), selected)) {
-			m_selectedObject = object.get();
+		ImGui::PushID(object.get());
+		if (ImGui::Selectable("##Id_Selectable", selected)) {
+			SetSelectedObject(object.get());
 		}
+		ImGui::SameLine();
+		ImGui::Text(object->GetName().c_str());
 
+		ImGui::PopID();
 	}
 	ImGui::Separator();
 	ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
@@ -313,4 +348,11 @@ void EditorLayer::DrawLights()
 	ImGui::ColorEdit3("A_Color", glm::value_ptr(m_scene->GetAmbienteLight().Color));
 	ImGui::DragFloat("A_Intensity", &m_scene->GetAmbienteLight().Intensity, 1.0);
 	ImGui::End(); // END LIGHT
+}
+
+void EditorLayer::SetSelectedObject(GameObject* object)
+{
+	m_selectedObject = object;
+	strcpy_s(m_tagBuffer, sizeof(m_tagBuffer), object->GetTag().c_str());
+	strcpy_s(m_nameBuffer, sizeof(m_nameBuffer), object->GetName().c_str());
 }
