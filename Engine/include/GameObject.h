@@ -76,6 +76,8 @@ public:
 
 	}
 
+	const std::vector<std::unique_ptr<Component>>& GetComponents() { return m_components; }
+
 	template<typename T>
 	const T* GetComponent() const
 	{

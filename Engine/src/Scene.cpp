@@ -200,3 +200,16 @@ CameraComponent* Scene::GetPrimaryCamera() const
 
 	return nullptr;
 }
+
+GameObject* Scene::GetGameObjectByTag(const std::string& tag)
+{
+	for(auto& object : m_gameObjects)
+	{
+		if(object->GetTag() == tag)
+		{
+			return object.get();
+		}
+	}
+
+	return nullptr;
+}

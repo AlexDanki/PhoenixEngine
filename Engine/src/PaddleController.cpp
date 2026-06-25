@@ -1,5 +1,7 @@
 #include "PaddleController.h"
 #include "Input.h"
+#include "Log.h"
+#include <iostream>
 
 void PaddleController::OnUpdate(float dt)
 {
@@ -25,4 +27,9 @@ void PaddleController::OnUpdate(float dt)
 	{
 		transform.position.z = 5.5f;
 	}
+}
+
+void PaddleController::OnCollisionEnter(GameObject* other)
+{
+	std::cout << other->GetName() << std::endl;
 }

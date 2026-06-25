@@ -16,6 +16,7 @@
 #include "MeshAsset.h"
 #include "RigidbodyComponent.h"
 #include "PaddleController.h"
+#include "BallController.h"
 #include "RotatorScript.h"
 #include "Input.h"
 #include "Log.h"
@@ -29,6 +30,7 @@ void App::Run()
 {
 	ScriptRegistry::Register("PaddleController", []() { return std::make_unique<PaddleController>(); });
 	ScriptRegistry::Register("TransformRotator", []() { return std::make_unique<RotatorScript>(); });
+	ScriptRegistry::Register("BallController", []() { return std::make_unique<BallController>(); });
 	//OBJLoader::Loader("Models/Et.obj", glm::vec3(0,0,0), glm::vec3(0, 0, 0));
 
 	std::cout << "Engine Started" << std::endl;
@@ -87,11 +89,6 @@ void App::Run()
 	m_etAsset = m_assetManager.LoadMeshAsset("Models/Et.obj");
 	m_paddleAsset = m_assetManager.LoadMeshAsset("Models/Paddle.fbx");
 
-	if(m_paddleAsset)
-	{
-		Log::Info("Carregou!");
-	}
-
 	// Material
 	//Texture* cubeTexture = m_assetManager.LoadTexture("Textures/GroundTex.png");
 	Material cubeMaterial(m_litShader);
@@ -113,6 +110,11 @@ void App::Run()
 	paddleMaterial.SetTexture(m_paddleTexture);
 	paddleMaterial.SetMaterialColor({ 1, 1, 1 });
 	m_paddleMaterial = &paddleMaterial;
+
+	Material ballMaterial(m_litShader);
+	ballMaterial.SetTexture(m_paddleTexture);
+	ballMaterial.SetMaterialColor({ 1, 1, 1 });
+	m_ballMaterial = &ballMaterial;
 
 	// Posiciona Camera
 	m_camera.GetTransform().position.x = 0.0f;
@@ -261,6 +263,7 @@ void App::ProcessInput()
 void App::Update(float dt)
 {
 	m_scene.Update(dt);
+	m_physicsSytem.Update(&m_scene);
 }
 
 void App::FixedUpdate(float dt)
@@ -281,7 +284,6 @@ GameObject* App::CreateGameObject(std::string name, ObjectType type,  const char
 	GameObject& object = m_scene.CreateGameObject(name, type);
 
 	Material& _material = material;
-	Log::Info("Esse aqui é o path: " + static_cast<std::string>(texturePath) + " do " + object.GetName());
 
 	object.SetTexturePath(texturePath);
 
@@ -486,8 +488,13 @@ void App::CreateDefaultScene()
 	m_mainCamera = CreateGameObject("Main_Cam", ObjectType::Camera, "Models/Paddle.fbx" , "Textures/PaddleTex.png", *m_paddleMaterial);
 	m_editorLayer.SetSelectedObject(m_mainCamera);
 	CreateCube();
+	CreateCube();
+	CreateCube();
+	CreateCube();
 	CreatePlane();
-	m_paddle = CreateGameObject("Paddle", ObjectType::Asset, "Models/Paddle.fbx", "Textures/PaddleTex.png", *m_paddleMaterial);
+	CreateGameObject("Paddle", ObjectType::Asset, "Models/Paddle.fbx", "Textures/PaddleTex.png", *m_paddleMaterial);
+	CreateGameObject("EnemyPaddle", ObjectType::Asset, "Models/Paddle.fbx", "Textures/PaddleTex.png", *m_paddleMaterial);
+	CreateGameObject("Ball", ObjectType::Asset, "Models/Ball.fbx", "Textures/BallTex.png", *m_ballMaterial);
 }
 
 Material* App::CreateMaterial(std::string& texturePath)

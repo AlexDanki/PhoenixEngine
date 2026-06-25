@@ -30,6 +30,7 @@ public:
 	AmbienteLight& GetAmbienteLight()  { return m_ambienteLight; }
 	const AmbienteLight& GetAmbienteLight()  const { return m_ambienteLight; }
 	CameraComponent* GetPrimaryCamera() const;
+	GameObject* GetGameObjectByTag(const std::string& tag);
 
 private:
 	std::vector<std::unique_ptr<GameObject>> m_gameObjects;

@@ -13,6 +13,7 @@
 #include "MeshAsset.h"
 #include "BoxCollider.h"
 #include "EditorLayer.h"
+#include "PhysicsSystem.h"
 
 struct RenderContext;
 
@@ -34,11 +35,14 @@ private:
 	Scene m_scene;
 	Camera m_camera;
 	AssetManager m_assetManager;
+	PhysicsSystem m_physicsSytem;
+
 
 	GameObject* m_player = nullptr;
-	GameObject* m_ground= nullptr;
-	GameObject* m_mainCamera= nullptr;
-	GameObject* m_paddle= nullptr;
+	GameObject* m_ground = nullptr;
+	GameObject* m_mainCamera = nullptr;
+	GameObject* m_paddle = nullptr;
+	GameObject* m_ball = nullptr;
 
 	SceneSerializer m_sceneSerializer;
 	EditorLayer m_editorLayer;

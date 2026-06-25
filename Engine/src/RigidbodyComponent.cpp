@@ -12,11 +12,9 @@ void RigidbodyComponent::PhysicsUpdate(float deltaTime)
 	{
 		velocity.y -= 9.8f * gravityScale * deltaTime;
 	}
-	else
-	{
-		velocity.y = 0;
-	}
 
+	m_transform->position.x += velocity.x * deltaTime;
 	m_transform->position.y += velocity.y * deltaTime;
+	m_transform->position.z += velocity.z * deltaTime;
 
 }
