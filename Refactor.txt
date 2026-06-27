@@ -1,0 +1,3 @@
+
+PHYSICS ENGINE REFACTOR 01
+Remover de dentro da Scene.cpp tudo oque for relacionado a física.

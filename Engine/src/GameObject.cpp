@@ -20,6 +20,17 @@ Transform& GameObject::GetTransform()
 	return m_transform;
 }
 
+void GameObject::StartScripts()
+{
+	for(auto& component : m_components)
+	{
+		if(auto script = dynamic_cast<ScriptComponent*>(component.get()))
+		{
+			script->OnStart();
+		}
+	}
+}
+
 void GameObject::UpdateScripts(float dt)
 {
 	for(auto& component : m_components)
@@ -64,4 +75,9 @@ bool GameObject::FindInScriptComponentsNames(std::string scriptName)
 	}
 
 	return false;
+}
+
+void GameObject::SetScene(Scene* scene)
+{
+	m_scene = scene;
 }

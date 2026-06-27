@@ -18,6 +18,7 @@
 #include "PaddleController.h"
 #include "BallController.h"
 #include "RotatorScript.h"
+#include "GameManager.h"
 #include "Input.h"
 #include "Log.h"
 #include "ScriptRegistry.h"
@@ -28,9 +29,11 @@ void InterfaceImGui();
 
 void App::Run()
 {
+	m_currentScene = &m_defaultScene;
 	ScriptRegistry::Register("PaddleController", []() { return std::make_unique<PaddleController>(); });
 	ScriptRegistry::Register("TransformRotator", []() { return std::make_unique<RotatorScript>(); });
 	ScriptRegistry::Register("BallController", []() { return std::make_unique<BallController>(); });
+	ScriptRegistry::Register("GameManager", []() { return std::make_unique<GameManager>(); });
 	//OBJLoader::Loader("Models/Et.obj", glm::vec3(0,0,0), glm::vec3(0, 0, 0));
 
 	std::cout << "Engine Started" << std::endl;
@@ -137,28 +140,10 @@ void App::Run()
 
 
 	RenderContext renderContext{
-		m_scene,
+		*m_currentScene,
 		m_camera,
 		aspect
 	};
-
-	/*int sizeGeneration = 5;
-	for (int x = 0; x < sizeGeneration; x++)
-	{
-		for (int y = 0; y < sizeGeneration; y++)
-		{
-			for (int z = 0; z < sizeGeneration; z++)
-			{
-				GameObject* cube = CreateCube();
-				m_selectedObject = cube;
-
-				Transform* t = &cube->GetTransform();
-				t->position.x = 2 * (x % 10);
-				t->position.y = 2 * (y % 10);
-				t->position.z = 2 * (z % 10);
-			}
-		}
-	}*/
 
 	// Verifica se não existe Cena salva.
 	if(!m_sceneSerializer.SceneFileExists("Scene.txt"))
@@ -176,13 +161,15 @@ void App::Run()
 
 	float saveMessageTimer = 0.0f;
 	
-	m_editorLayer.SetScene(&m_scene);
+	m_editorLayer.SetScene(m_currentScene);
 	m_editorLayer.SetApp(this);
 	m_editorLayer.SetSceneScerializer(&m_sceneSerializer);
+
+	m_currentScene->Start();
 	// Loop Princial
 	while (m_isRunning && !m_window.ShouldClose())
 	{
-
+		if (deltaTime > 0.05f) { deltaTime = 0.05f; }
 		m_window.PoolEvents();
 		TimePoint currentTime = Clock::now();
 		std::chrono::duration<float> elapsed = currentTime - lastTime;
@@ -194,7 +181,7 @@ void App::Run()
 		// Loop Fixo
 		while (accumulator >= fixedDeltaTime)
 		{
-			FixedUpdate(deltaTime);
+			FixedUpdate(fixedDeltaTime);
 			accumulator -= fixedDeltaTime;
 		}
 
@@ -232,7 +219,7 @@ void App::Run()
 			m_renderer.DrawTransformGizmos(*m_editorLayer.GetSelectedObject(), renderContext, aspect);
 			if(m_editorLayer.GetSelectedObject()->GetComponent<BoxCollider>())
 			{
-				m_renderer.DrawBoxCollider(*m_editorLayer.GetSelectedObject()->GetComponent<BoxCollider>(), m_scene.GetPrimaryCamera()->GetViewProjection(aspect));
+				m_renderer.DrawBoxCollider(*m_editorLayer.GetSelectedObject()->GetComponent<BoxCollider>(), m_currentScene->GetPrimaryCamera()->GetViewProjection(aspect));
 
 			}
 		}
@@ -262,13 +249,13 @@ void App::ProcessInput()
 
 void App::Update(float dt)
 {
-	m_scene.Update(dt);
-	m_physicsSytem.Update(&m_scene);
+	m_currentScene->Update(dt);
+	m_physicsSytem.Update(m_currentScene);
 }
 
 void App::FixedUpdate(float dt)
 {
-	m_scene.FixedUpdate(dt);
+	m_currentScene->FixedUpdate(dt);
 }
 
 void App::Render()
@@ -280,8 +267,8 @@ GameObject* App::CreateGameObject(std::string name, ObjectType type,  const char
 {
 	Mesh* mesh = &m_assetManager.LoadMeshAsset(assetPath)->GetMesh();
 
-	std::string objectName = m_scene.GenerateUniqueName(name);
-	GameObject& object = m_scene.CreateGameObject(name, type);
+	std::string objectName = m_currentScene->GenerateUniqueName(name);
+	GameObject& object = m_currentScene->CreateGameObject(name, type);
 
 	Material& _material = material;
 
@@ -312,7 +299,7 @@ GameObject* App::CreateAssetObject(std::string& assetPath, std::string& textureP
 	MeshAsset* asset = m_assetManager.LoadMeshAsset(assetPath);
 
 	
-	GameObject* object = &m_scene.CreateGameObject("Asset", ObjectType::Asset);
+	GameObject* object = &m_currentScene->CreateGameObject("Asset", ObjectType::Asset);
 	Material* material = m_assetManager.CreateMaterial(texturePath, m_litShader);
 	object->AddComponent(std::make_unique<MeshComponent>(&asset->GetMesh(), material));
 	object->SetAssetPath(assetPath.c_str());
@@ -322,8 +309,8 @@ GameObject* App::CreateAssetObject(std::string& assetPath, std::string& textureP
 GameObject* App::CreateCube()
 {
 
-	std::string name = m_scene.GenerateUniqueName("Cube");
-	GameObject& cube = m_scene.CreateGameObject(name, ObjectType::Cube);
+	std::string name = m_currentScene->GenerateUniqueName("Cube");
+	GameObject& cube = m_currentScene->CreateGameObject(name, ObjectType::Cube);
 	cube.AddComponent(std::make_unique<MeshComponent>(&m_cubeMesh, m_cubeMaterial));
 	m_cubeMaterial->SetTexture(m_assetManager.LoadTexture("Textures/DefaultTex.png"));
 	cube.GetTransform().position.z = 0;
@@ -336,8 +323,8 @@ GameObject* App::CreatePlane()
 {
 	
 	// Cria objeto 02
-	std::string name = m_scene.GenerateUniqueName("Plane");
-	GameObject& plane = m_scene.CreateGameObject(name, ObjectType::Plane);
+	std::string name = m_currentScene->GenerateUniqueName("Plane");
+	GameObject& plane = m_currentScene->CreateGameObject(name, ObjectType::Plane);
 	plane.AddComponent(std::make_unique<MeshComponent>(&m_planeMesh, m_planeMaterial));
 	plane.AddComponent(std::make_unique<BoxCollider>());
 
@@ -348,8 +335,8 @@ GameObject* App::CreatePlane()
 GameObject* App::CreateCamera()
 {
 
-	std::string name = m_scene.GenerateUniqueName("Camera");
-	GameObject& camera = m_scene.CreateGameObject(name, ObjectType::Camera);
+	std::string name = m_currentScene->GenerateUniqueName("Camera");
+	GameObject& camera = m_currentScene->CreateGameObject(name, ObjectType::Camera);
 	//camera.AddComponent(std::make_unique<MeshComponent>(&m_cubeMash, m_cameraMaterial));
 	camera.AddComponent(std::make_unique<CameraComponent>());
 	camera.GetTransform().position.y = 3;
@@ -458,15 +445,15 @@ void App::LoadDirectionalLightScene()
 	DirectionalLightdata data;
 	data = m_sceneSerializer.LoadDirectionalLightData("Scene.txt");
 
-	m_scene.GetDirectionalLight().Direction.x = data.direction.x;
-	m_scene.GetDirectionalLight().Direction.y = data.direction.y;
-	m_scene.GetDirectionalLight().Direction.z = data.direction.z;
+	m_defaultScene.GetDirectionalLight().Direction.x = data.direction.x;
+	m_defaultScene.GetDirectionalLight().Direction.y = data.direction.y;
+	m_defaultScene.GetDirectionalLight().Direction.z = data.direction.z;
 
-	m_scene.GetDirectionalLight().Color.x = data.color.x;
-	m_scene.GetDirectionalLight().Color.y = data.color.y;
-	m_scene.GetDirectionalLight().Color.z = data.color.z;
+	m_defaultScene.GetDirectionalLight().Color.x = data.color.x;
+	m_defaultScene.GetDirectionalLight().Color.y = data.color.y;
+	m_defaultScene.GetDirectionalLight().Color.z = data.color.z;
 
-	m_scene.GetDirectionalLight().Intensity = data.intensity;
+	m_defaultScene.GetDirectionalLight().Intensity = data.intensity;
 
 }
 void App::LoadAmbinetLightScene()
@@ -475,11 +462,11 @@ void App::LoadAmbinetLightScene()
 	AmbineteLightData data;
 	data = m_sceneSerializer.LoadAmbienteLightdata("Scene.txt");
 
-	m_scene.GetAmbienteLight().Color.x = data.color.x;
-	m_scene.GetAmbienteLight().Color.y = data.color.y;
-	m_scene.GetAmbienteLight().Color.z = data.color.z;
+	m_defaultScene.GetAmbienteLight().Color.x = data.color.x;
+	m_defaultScene.GetAmbienteLight().Color.y = data.color.y;
+	m_defaultScene.GetAmbienteLight().Color.z = data.color.z;
 
-	m_scene.GetAmbienteLight().Intensity = data.intensity;
+	m_defaultScene.GetAmbienteLight().Intensity = data.intensity;
 
 }
 

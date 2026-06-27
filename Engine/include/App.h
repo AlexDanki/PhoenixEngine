@@ -21,7 +21,7 @@ class App
 {
 public:
 	void Run();
-	const Scene& GetScene() const { return m_scene; }
+	const Scene& GetScene() const { return m_defaultScene; }
 	
 	GameObject* CreateCube();
 	GameObject* CreatePlane();
@@ -32,7 +32,8 @@ private:
 
 	Window m_window{ "Phoenix", 1280, 720 };
 	Renderer m_renderer;
-	Scene m_scene;
+	Scene m_defaultScene;
+	Scene* m_currentScene;
 	Camera m_camera;
 	AssetManager m_assetManager;
 	PhysicsSystem m_physicsSytem;
@@ -72,7 +73,7 @@ private:
 	
 	//Material
 
-	void Init();
+	void Start();
 	void ProcessInput();
 	void Update(float dt);
 	void FixedUpdate(float dt);

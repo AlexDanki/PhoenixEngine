@@ -6,16 +6,30 @@
 #include "ScriptComponent.h"
 
 
+// Chamada quando a cena é carregada
+void Scene::Start()
+{
+	// Start de Scripts dos Objetos
+	for (auto& object : m_gameObjects)
+	{
+		object->StartScripts();
+	}
+}
+
+// Chamada uma vez a cada frame
 void Scene::Update(float deltaTime)
 {
+	// Update de Scripts dos Objetos
 	for (auto& object : m_gameObjects)
 	{
 		object->UpdateScripts(deltaTime);
 	}
 }
 
+// Chamada uma vez a cada frame com deltaTime fixo
 void Scene::FixedUpdate(float deltaTime)
 {
+	// Update de Rigidbodyes dos Objetos
 	for(auto& object : m_gameObjects)
 	{
 		if(auto rigidbody = object->GetComponent<RigidbodyComponent>())
@@ -24,6 +38,8 @@ void Scene::FixedUpdate(float deltaTime)
 		}
 	}
 
+
+	// Gerencia colisões entre os Objetos
 	for(auto& object : m_gameObjects)
 	{
 		if (!object->dinamic) continue;
@@ -36,9 +52,14 @@ void Scene::FixedUpdate(float deltaTime)
 			{
 				if (otherObject == object) continue;
 				auto otherCollider = otherObject->GetComponent<BoxCollider>();
+
+
 				if(otherCollider)
 				{
-					
+					// Checa se algum dos collisores possuem BoxCollider como trigger
+					bool isTriggerCollision = collider->isTrigger || otherCollider->isTrigger;
+					if (isTriggerCollision) continue;
+
 					if(collider->Intersects(*otherCollider))
 					{
 						
@@ -124,20 +145,21 @@ void Scene::FixedUpdate(float deltaTime)
 			}
 		}
 	}
-
 }
 
+// Cria um gameObject com nome e tipo especificados
 GameObject& Scene::CreateGameObject(const std::string& name, ObjectType type)
 {
 	auto gameObject = std::make_unique<GameObject>(name, type);
-
+	gameObject->SetScene(this);
 	GameObject& ref = *gameObject;
-
+	
 	m_gameObjects.push_back(std::move(gameObject));
 
 	return ref;
 }
 
+// Remove um GameObject
 void Scene::RemoveGameObject(GameObject* gameObject)
 {
 	for(auto& it = m_gameObjects.begin();it != m_gameObjects.end(); it++)
@@ -150,11 +172,13 @@ void Scene::RemoveGameObject(GameObject* gameObject)
 	}
 }
 
+// Retorna todos os GameObjects da Cena 
 const std::vector<std::unique_ptr<GameObject>>& Scene::GetGameObjects() const
 {
 	return m_gameObjects;
 }
 
+// Gera um nome diferente dos objetos que já estão na cena
 std::string Scene::GenerateUniqueName(const std::string& baseName)
 {
 	std::string targetName = baseName;
@@ -185,6 +209,8 @@ std::string Scene::GenerateUniqueName(const std::string& baseName)
 	
 }
 
+// Pega a primiera câmera Primary do jogo -  Primary -> Indica que a câmera deve ser tratada como principal
+// Se a cena tiver mais de uma câmera marcada como Primary a função retorna a primira na Hierarquia 
 CameraComponent* Scene::GetPrimaryCamera() const
 {
 	for(auto& object : m_gameObjects)
@@ -201,11 +227,26 @@ CameraComponent* Scene::GetPrimaryCamera() const
 	return nullptr;
 }
 
+// Retorna o primiero objeto na Hierarquia com a Tag indicada
 GameObject* Scene::GetGameObjectByTag(const std::string& tag)
 {
 	for(auto& object : m_gameObjects)
 	{
 		if(object->GetTag() == tag)
+		{
+			return object.get();
+		}
+	}
+
+	return nullptr;
+}
+
+// Pega o primiero objeto na hierarquia com o nome indicado
+GameObject* Scene::GetGameObjectByName(const std::string& name)
+{
+	for(auto& object : m_gameObjects)
+	{
+		if(object->GetName() == name)
 		{
 			return object.get();
 		}

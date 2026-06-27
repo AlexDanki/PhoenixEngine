@@ -7,6 +7,8 @@
 #include "Component.h"
 #include <glm/glm.hpp>
 
+class Scene;
+
 enum class ObjectType
 {
 	Plane,
@@ -34,6 +36,7 @@ public:
 	const Transform& GetTransform() const;
 
 	void UpdateScripts(float dt);
+	void StartScripts();
 
 	ObjectType GetType() const;
 
@@ -95,15 +98,17 @@ public:
 
 	}
 
+	void SetScriptComponentName(std::string& scriptName);
 	void SetAssetPath(const char* path) { m_assetPath = path; }
 	void SetTexturePath(const char* path) { m_texturePath = path; }
 	void SetType(ObjectType type) { m_type = type; }
-
+	void SetScene(Scene* scene);
+	std::vector<std::string> GetScriptsComponentsNames() { return m_scriptsComponentsNames; }
+	
 	std::string GetAssetPath() { return m_assetPath; }
 	std::string GetTexturePath() { return m_texturePath; }
+	Scene* GetScene() { return m_scene; }
 
-	void SetScriptComponentName(std::string& scriptName);
-	std::vector<std::string> GetScriptsComponentsNames(){return m_scriptsComponentsNames; }
 	bool FindInScriptComponentsNames(std::string scriptName);
 
 private:
@@ -113,6 +118,7 @@ private:
 	std::string m_texturePath = "Engine";
 	Transform m_transform;
 	ObjectType m_type;
+	Scene* m_scene;
 	std::vector<std::unique_ptr<Component>> m_components;
 	std::vector<std::string> m_scriptsComponentsNames;
 };
