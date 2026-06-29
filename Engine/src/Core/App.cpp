@@ -12,12 +12,12 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <glm/gtc/type_ptr.inl>
-#include "OBJLoader.h"
 #include "MeshAsset.h"
 #include "RigidbodyComponent.h"
 #include "PaddleController.h"
 #include "BallController.h"
 #include "RotatorScript.h"
+#include "EnemyPaddleController.h"
 #include "GameManager.h"
 #include "Input.h"
 #include "Log.h"
@@ -34,6 +34,7 @@ void App::Run()
 	ScriptRegistry::Register("TransformRotator", []() { return std::make_unique<RotatorScript>(); });
 	ScriptRegistry::Register("BallController", []() { return std::make_unique<BallController>(); });
 	ScriptRegistry::Register("GameManager", []() { return std::make_unique<GameManager>(); });
+	ScriptRegistry::Register("EnemyPaddleController", []() { return std::make_unique<EnemyPaddleController>(); });
 	//OBJLoader::Loader("Models/Et.obj", glm::vec3(0,0,0), glm::vec3(0, 0, 0));
 
 	std::cout << "Engine Started" << std::endl;

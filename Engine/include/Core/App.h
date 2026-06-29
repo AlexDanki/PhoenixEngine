@@ -30,7 +30,7 @@ public:
 private:
 	bool m_isRunning = true;
 
-	Window m_window{ "Phoenix", 1280, 720 };
+	Window m_window{ "Munita", 1280, 720 };
 	Renderer m_renderer;
 	Scene m_defaultScene;
 	Scene* m_currentScene;

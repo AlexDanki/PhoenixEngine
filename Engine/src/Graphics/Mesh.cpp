@@ -1,7 +1,6 @@
 #include "Mesh.h"
 #include "glad/glad.h"
 #include "Vertex.h"
-#include "OBJLoader.h"
 #include <iostream>
 #include "assimp/importer.hpp"
 #include <assimp/scene.h>

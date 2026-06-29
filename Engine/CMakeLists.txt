@@ -1,7 +1,7 @@
 add_library(PhoenixEngine STATIC)
 
 target_sources(PhoenixEngine PRIVATE  
-"src/Window.cpp" "src/Renderer.cpp" "include/Mesh.h" "src/Mesh.cpp" "src/Transform.cpp"  "src/GameObject.cpp" "include/Scene.h" "src/Scene.cpp" "include/Component.h" "src/Component.cpp" "include/MeshComponent.h" "src/MeshComponent.cpp" "include/App.h" "src/App.cpp" "include/Camera.h" "src/Camera.cpp" "include/Vertex.h" "include/DirectionalLight.h" "include/AmbienteLight.h" "include/RenderContext.h" "include/Texture.h" "src/Texture.cpp" "include/Material.h" "src/Material.cpp" "include/Shader.h" "src/Shader.cpp" "include/AssetManager.h" "src/AssetManager.cpp" "include/SceneSerializer.h" "src/SceneSerializer.cpp" "include/OBJLoader.h" "src/OBJLoader.cpp" "include/MeshAsset.h" "../ThirdParty/ImGui/imgui.cpp"
+"src/Core/Window.cpp" "src/Graphics/Renderer.cpp" "include/Graphics/Mesh.h" "src/Graphics/Mesh.cpp" "src/Core/Transform.cpp"  "src/Core/GameObject.cpp" "include/Core/Scene.h" "src/Core/Scene.cpp" "include/Components/Component.h" "src/Components/Component.cpp" "include/Components/MeshComponent.h" "src/Components/MeshComponent.cpp" "include/Core/App.h" "src/Core/App.cpp" "include/Graphics/Camera.h" "src/Graphics/Camera.cpp" "include/Graphics/Vertex.h" "include/Graphics/DirectionalLight.h" "include/Graphics/AmbienteLight.h" "include/Graphics/RenderContext.h" "include/Graphics/Texture.h" "src/Graphics/Texture.cpp" "include/Graphics/Material.h" "src/Graphics/Material.cpp" "include/Graphics/Shader.h" "src/Graphics/Shader.cpp" "include/Core/AssetManager.h" "src/Core/AssetManager.cpp" "include/Core/SceneSerializer.h" "src/Core/SceneSerializer.cpp"   "include/Graphics/MeshAsset.h" "../ThirdParty/ImGui/imgui.cpp"
     "../ThirdParty/ImGui/imgui_draw.cpp"
     "../ThirdParty/ImGui/imgui_tables.cpp"
     "../ThirdParty/ImGui/imgui_widgets.cpp"
@@ -9,10 +9,21 @@ target_sources(PhoenixEngine PRIVATE
     "../ThirdParty/ImGui/imgui_impl_glfw.cpp"
     "../ThirdParty/ImGui/imgui_impl_opengl3.cpp"
 
-    "../ThirdParty/ImGui/imgui_demo.cpp" "src/MeshAsset.cpp" "include/BoxCollider.h" "src/BoxCollider.cpp" "include/RigidbodyComponent.h" "src/RigidbodyComponent.cpp" "include/EditorLayer.h" "src/EditorLayer.cpp" "include/ScriptComponent.h"  "include/RotatorScript.h" "include/CameraComponent.h" "src/CameraComponent.cpp" "include/Input.h" "src/Input.cpp" "include/Log.h" "include/PaddleController.h" "src/PaddleController.cpp" "include/ScriptRegistry.h" "src/ScriptRegistry.cpp" "include/PhysicsSystem.h" "src/PhysicsSystem.cpp" "include/BallController.h" "src/BallController.cpp" "include/GameManager.h" "include/Random.h" "src/Random.cpp" "src/GameManager.cpp")
+    "../ThirdParty/ImGui/imgui_demo.cpp" "src/Graphics/MeshAsset.cpp" "include/Physics/BoxCollider.h" "src/Physics/BoxCollider.cpp" "include/Components/RigidbodyComponent.h" "src/Components/RigidbodyComponent.cpp" "include/Editor/EditorLayer.h" "src/Editor/EditorLayer.cpp" "include/Components/ScriptComponent.h"  "include/Game/RotatorScript.h" "include/Components/CameraComponent.h" "src/Components/CameraComponent.cpp" "include/Core/Input.h" "src/Core/Input.cpp" "include/Utils/Log.h" "include/Game/PaddleController.h" "src/Game/PaddleController.cpp" "include/Core/ScriptRegistry.h" "src/Core/ScriptRegistry.cpp" "include/Physics/PhysicsSystem.h" "src/Physics/PhysicsSystem.cpp" "include/Game/BallController.h" "src/Game/BallController.cpp" "include/Game/GameManager.h" "include/Utils/Random.h" "src/Utils/Random.cpp" "src/Game/GameManager.cpp" "include/Game/EnemyPaddleController.h" "src/Game/EnemyPaddleController.cpp")
 
 
-target_include_directories(PhoenixEngine PUBLIC	include "../ThirdParty/ImGui")
+target_include_directories(PhoenixEngine 
+PUBLIC	include 
+"../ThirdParty/ImGui"
+${CMAKE_SOURCE_DIR}/Engine/include
+${CMAKE_SOURCE_DIR}/Engine/include/Core
+${CMAKE_SOURCE_DIR}/Engine/include/Game
+${CMAKE_SOURCE_DIR}/Engine/include/Utils
+${CMAKE_SOURCE_DIR}/Engine/include/Editor
+${CMAKE_SOURCE_DIR}/Engine/include/Physics
+${CMAKE_SOURCE_DIR}/Engine/include/Graphics
+${CMAKE_SOURCE_DIR}/Engine/include/Components
+)
 
 find_package(glfw3 CONFIG REQUIRED)	
 find_package(glad CONFIG REQUIRED)
