@@ -7,6 +7,7 @@
 #include "Scene.h"
 #include "Camera.h"
 #include "MeshComponent.h"
+#include "WorldTextRenderComponent.h"
 #include <glm/gtc/type_ptr.hpp>
 #include "DirectionalLight.h"
 #include "AmbienteLight.h"
@@ -14,10 +15,32 @@
 #include "RenderContext.h"
 #include "Shader.h"
 #include "BoxCollider.h"
+#include "Font.h"
+#include "ft2build.h"
+#include FT_FREETYPE_H
 
 void Renderer::Init()
 {
 
+	glGenVertexArrays(1, &m_textVAO);
+	glGenBuffers(1, &m_textVBO);
+
+	glBindVertexArray(m_textVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_textVBO);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(
+		0,
+		4,
+		GL_FLOAT,
+		GL_FALSE,
+		sizeof(float) * 4,
+		(void*)0
+	);
+
+	glEnableVertexAttribArray(0);
+
+	// Inicializa o shader de linhas
     glGenVertexArrays(1, &m_lineVAO);
     glGenBuffers(1, &m_lineVBO);
 
@@ -58,6 +81,118 @@ void Renderer::DrawMesh(const Mesh& mesh, Shader* shader)
     glDrawElements(GL_TRIANGLES, mesh.GetIndexCount(), GL_UNSIGNED_INT, nullptr);
 }
 
+void Renderer::DrawScene(RenderContext& renderContext)
+{
+    for (const auto& gameObject : renderContext.scene.GetGameObjects())
+    {
+        DrawGameObject(*gameObject, renderContext);
+    }
+}
+
+void Renderer::DrawGameObject(const GameObject& object, RenderContext& renderContext)
+{
+
+    DrawMeshComponent(object, renderContext);
+    DrawTextComponent(object, renderContext);
+}
+
+void Renderer::DrawMeshComponent(const GameObject& object, RenderContext& renderContext)
+{
+	const WorldTextRenderComponent* textRender = object.GetComponent<WorldTextRenderComponent>();
+
+    const MeshComponent* meshComponent = object.GetComponent<MeshComponent>();
+
+    if (!meshComponent) { return; }
+
+    const Mesh* mesh = meshComponent->GetMesh();
+    const Material* material = meshComponent->GetMaterial();
+
+    if (!mesh || !material) { return; }
+
+    Texture* texture = material->GetTexture();
+
+    if (texture == nullptr) { return; }
+
+    Shader* shader = material->GetShader();
+
+    shader->Use();
+
+    SendViewProjection(shader, renderContext, renderContext.aspectRatio);
+    SendDirectionalLight(shader, renderContext.scene.GetDirectionalLight());
+    SendAmbineteLight(shader, renderContext.scene.GetAmbienteLight());
+    SendModelMatrix(shader, object);
+
+    glUniform3fv(shader->GetMaterialColorLocation(), 1, glm::value_ptr(material->GetMaterialColor()));
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture->GetID());
+    DrawMesh(*mesh, shader);
+}
+
+void Renderer::DrawTextComponent(const GameObject& object, RenderContext& renderContext)
+{
+    const WorldTextRenderComponent* textRender = object.GetComponent<WorldTextRenderComponent>();
+
+    if (!textRender) { return; }
+
+    const Font* font = textRender->GetFont();
+
+    if(!font) { return; }
+
+    const std::string& text = textRender->GetText();
+
+    if (text.empty()) return;
+
+    float cursorX = 0.0f;
+    float cursorY = 0.0f;
+
+    for(auto c : text)
+    {
+        Font::Character character = font->GetCharacter(c);
+        
+		const float scale = textRender->GetScale();
+		float w = character.size.x * scale;
+		float h = character.size.y * scale;
+
+        float vertices[] =
+        {
+            cursorX ,       cursorY + h,    0.0f, 0.0f,
+            cursorX ,       cursorY ,       0.0f, 1.0f,
+            cursorX + w,    cursorY ,       1.0f, 1.0f,
+
+            cursorX ,       cursorY + h,    0.0f, 0.0f,
+            cursorX + w,    cursorY ,       1.0f, 1.0f,
+            cursorX + w,    cursorY + h,    1.0f, 0.0f
+        };
+
+        renderContext.textShader->Use();
+		glBindVertexArray(m_textVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, m_textVBO);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
+        
+        glBindTexture(GL_TEXTURE_2D, character.textureID);
+        glActiveTexture(GL_TEXTURE0);
+        glUniform1i(
+            renderContext.textShader->GetUniformLocation("textTexture"),
+            0
+        );
+
+        glEnable(GL_BLEND);
+
+        glBlendFunc(
+            GL_SRC_ALPHA,
+            GL_ONE_MINUS_SRC_ALPHA
+        );
+        //SendOrthoProjection(renderContext);
+        SendModelMatrix(renderContext.textShader, object);
+		SendViewProjection(renderContext.textShader, renderContext, renderContext.aspectRatio);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+		cursorX += (character.advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64)
+        glDisable(GL_BLEND);
+    }
+
+}
+
 void Renderer::DrawLine(glm::vec3& start, glm::vec3& end, glm::vec3& color, glm::mat4& viewProjectionMatrix)
 {
     const float vertices[] =
@@ -79,49 +214,6 @@ void Renderer::DrawLine(glm::vec3& start, glm::vec3& end, glm::vec3& color, glm:
     glBindVertexArray(m_lineVAO);
     glDrawArrays(GL_LINES, 0, 2);
 
-}
-
-void Renderer::DrawGameObject(const GameObject& object, RenderContext& renderContext)
-{
-    const MeshComponent* meshComponent = object.GetComponent<MeshComponent>();
-
-    if (!meshComponent) { return; }
-
-    const Mesh* mesh = meshComponent->GetMesh();
-    const Material* material = meshComponent->GetMaterial();
-
-    if (!mesh || !material) { return; }
-
-    Texture* texture = material->GetTexture();
-
-    if (texture == nullptr)
-    {
-        return;
-    }
-
-    Shader* shader = material->GetShader();
-
-    shader->Use();
-
-    SendViewProjection(shader, renderContext, renderContext.aspectRatio);
-    SendDirectionalLight(shader, renderContext.scene.GetDirectionalLight());
-    SendAmbineteLight(shader, renderContext.scene.GetAmbienteLight());
-    SendModelMatrix(shader, object);
-
-    glUniform3fv(shader->GetMaterialColorLocation(), 1, glm::value_ptr(material->GetMaterialColor()));
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture->GetID());
-
-    DrawMesh(*mesh, shader);
-
-}
-
-void Renderer::DrawScene(RenderContext& renderContext)
-{
-    for (const auto& gameObject : renderContext.scene.GetGameObjects())
-    {
-        DrawGameObject(*gameObject, renderContext);
-    }
 }
 
 void Renderer::DrawTransformGizmos(const GameObject& object, RenderContext& renderContext, float aspect)
@@ -188,6 +280,14 @@ void Renderer::SendViewProjection(Shader* shader, RenderContext& renderContext, 
         glUniformMatrix4fv(shader->GetViewProjectionLocation(), 1, GL_FALSE,
             glm::value_ptr(renderContext.scene.GetPrimaryCamera()->GetViewProjection(aspectRatio)));
     }
+}
+
+void Renderer::SendOrthoProjection(RenderContext& renderContext)
+{
+	glm::mat4 projection = glm::ortho(0.0f, (float) renderContext.screenWidth,
+		(float)renderContext.screenHeight, 0.0f);
+    GLint orthlocation = glGetUniformLocation(renderContext.textShader->GetProgram(), "projection");
+	glUniformMatrix4fv(orthlocation, 1, GL_FALSE, glm::value_ptr(projection));
 }
 
 void Renderer::SendDirectionalLight(Shader* shader, const DirectionalLight& dirLight)

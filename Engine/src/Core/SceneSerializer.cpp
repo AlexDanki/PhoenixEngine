@@ -8,6 +8,7 @@
 #include "Material.h"
 #include "MeshComponent.h"
 #include "RigidbodyComponent.h"
+#include "WorldTextRenderComponent.h"
 #include "App.h"
 #include "DirectionalLight.h"
 #include "AmbienteLight.h"
@@ -82,6 +83,14 @@ bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 		else if(data.type == ObjectType::Camera)
 		{
 			objectType = "Camera";
+		}
+		else if(data.type == ObjectType::Text)
+		{
+			objectType = "Text";
+		}
+		else if(data.type == ObjectType::Empty)
+		{
+			objectType = "Empty";
 		}
 		else if(data.type == ObjectType::Asset)
 		{
@@ -166,6 +175,14 @@ bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 			<< data.useGravit
 			<< " "
 			<< data.gravitScale
+
+			// Object World Text
+			<< " "
+			<< data.hasWorldText
+			<< " "
+			<< data.worldText
+			<< " "
+			<< data.textScale
 			<< "\n"
 			<< "SCRIPTS\n";
 
@@ -208,9 +225,12 @@ SceneObjectData SceneSerializer::BuildSceneObjectData(GameObject& object)
 	data.scale.y = transform.scale.y;
 	data.scale.z = transform.scale.z;
 
-	glm::vec3 materialColor = object.GetComponent<MeshComponent>()->GetMaterial()->GetMaterialColor();
-
-	data.color = materialColor;
+	if (auto meshComponent = object.GetComponent<MeshComponent>())
+	{
+		glm::vec3 materialColor = meshComponent->GetMaterial()->GetMaterialColor();
+		data.color = materialColor;
+	}
+	
 	data.assetPath = object.GetAssetPath();
 	data.texturePath = object.GetTexturePath();
 
@@ -241,6 +261,13 @@ SceneObjectData SceneSerializer::BuildSceneObjectData(GameObject& object)
 		data.hasRigidbody = false;
 	}
 
+	if(auto worldText = object.GetComponent<WorldTextRenderComponent>())
+	{
+		data.hasWorldText = true;
+		data.worldText = worldText->GetText();
+		data.textScale = worldText->GetScale();
+	}
+
 	data.scriptsNames = object.GetScriptsComponentsNames();
 
 	return data;
@@ -257,17 +284,14 @@ std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::
 		return sceneData;
 	}
 	
-
 	std::string line;
 	
-
 	bool startLoad = false;
 	bool readingScripts = false;
 	SceneObjectData currentObject = SceneObjectData();
 
 	while(std::getline(file, line))
 	{
-		
 
 		if(line == "GAMEOBJECTS")
 		{
@@ -303,10 +327,12 @@ std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::
 		std::stringstream ss(line);
 		std::string typeString;
 		
+		// Object Info
 		ss >> typeString;
 		ss >> currentObject.name;
 		ss >> currentObject.tag;
 
+		// Object Transform
 		ss >> currentObject.position.x;
 		ss >> currentObject.position.y;
 		ss >> currentObject.position.z;
@@ -319,12 +345,16 @@ std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::
 		ss >> currentObject.scale.y;
 		ss >> currentObject.scale.z;
 
+		// Object Material
 		ss >> currentObject.color.x;
 		ss >> currentObject.color.y;
 		ss >> currentObject.color.z;
+
+		// Object Asset
 		ss >> currentObject.assetPath;
 		ss >> currentObject.texturePath;
 
+		// Object BoxCollider
 		ss >> currentObject.hasBoxCollider;
 		ss >> currentObject.isTrigger;
 
@@ -336,6 +366,7 @@ std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::
 		ss >> currentObject.boxSize.y;
 		ss >> currentObject.boxSize.z;
 
+		// Object Rigidbody
 		ss >> currentObject.hasRigidbody;
 
 		ss >> currentObject.rigidbodyVelocity.x;
@@ -344,6 +375,12 @@ std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::
 
 		ss >> currentObject.useGravit;
 		ss >> currentObject.gravitScale;
+
+		// Object World Text
+
+		ss >> currentObject.hasWorldText;
+		ss >> currentObject.worldText;
+		ss >> currentObject.textScale;
 
 		ObjectType objectType = ObjectType::Cube;
 
@@ -354,10 +391,20 @@ std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::
 		else if (typeString == "Plane")
 		{
 			objectType = ObjectType::Plane;
-		}else if (typeString == "Camera")
+		}
+		else if (typeString == "Camera")
 		{
 			objectType = ObjectType::Camera;
-		}else if (typeString == "Asset")
+		}
+		else if (typeString == "Text")
+		{
+			objectType = ObjectType::Text;
+		}
+		else if (typeString == "Empty")
+		{
+			objectType = ObjectType::Empty;
+		}
+		else if (typeString == "Asset")
 		{
 			objectType = ObjectType::Asset;
 		}

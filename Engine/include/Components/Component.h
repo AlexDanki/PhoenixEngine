@@ -1,4 +1,5 @@
 #pragma once
+#include <fstream>
 
 class GameObject;
 class Transform;
@@ -18,6 +19,10 @@ public:
 
 	// Retorna o GameObject a quem o componente pertence
 	GameObject* GetOwner() const;
+
+	virtual void Serialize(std::ofstream& file) const {};
+
+	virtual void Deserialize(std::ifstream& file) const {};
 
 protected:
 	GameObject* m_owner = nullptr;

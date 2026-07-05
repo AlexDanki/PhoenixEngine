@@ -27,6 +27,9 @@ public:
 	unsigned int GetVertexCount() const; 
 	unsigned int GetIndexCount() const; 
 
+	void SetMeshFilePath(const std::string& path) { m_meshFilePath = path; }
+	std::string GetMeshFilePath() const { return m_meshFilePath; }
+
 private:
 	unsigned int m_VAO = 0;
 	unsigned int m_VBO = 0;
@@ -36,4 +39,6 @@ private:
 
 	std::vector<Vertex> m_vertices;
 	std::vector<unsigned int> m_indices;
+
+	std::string m_meshFilePath;
 };

@@ -6,6 +6,7 @@
 #include <type_traits>
 #include "Component.h"
 #include <glm/glm.hpp>
+#include <fstream>
 
 class Scene;
 
@@ -14,6 +15,8 @@ enum class ObjectType
 	Plane,
 	Cube,
 	Camera,
+	Text,
+	Empty,
 	Asset
 };
 
@@ -106,10 +109,16 @@ public:
 	std::vector<std::string> GetScriptsComponentsNames() { return m_scriptsComponentsNames; }
 	
 	std::string GetAssetPath() { return m_assetPath; }
+	const std::string GetAssetPath() const{ return m_assetPath; }
 	std::string GetTexturePath() { return m_texturePath; }
 	Scene* GetScene() { return m_scene; }
 
 	bool FindInScriptComponentsNames(std::string scriptName);
+
+	// Serialize o GameObject e seus componentes para um arquivo
+	void Serialize(std::ofstream& file) const;
+	
+
 
 private:
 	std::string m_name = "GameObject";
@@ -121,4 +130,8 @@ private:
 	Scene* m_scene;
 	std::vector<std::unique_ptr<Component>> m_components;
 	std::vector<std::string> m_scriptsComponentsNames;
+
+	// Funções auxiliares para serialização
+	void SerializeTransform(std::ofstream& file) const;
+	void SerializeComponents(std::ofstream& file) const;
 };

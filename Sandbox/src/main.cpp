@@ -4,4 +4,5 @@ int main()
 {
 	App app;
 	app.Run();
+	app.ShutDown();
 }

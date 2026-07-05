@@ -26,6 +26,10 @@ public:
 	void DrawLine(glm::vec3& start, glm::vec3& end, glm::vec3& color, glm::mat4& viewProjection);
 	void DrawBoxCollider(BoxCollider& boxCollider, glm::mat4 viewProjection);
 
+	// auxilaires para DrawGameObject
+	void DrawMeshComponent(const GameObject& object, RenderContext& renderContext);
+	void DrawTextComponent(const GameObject& object, RenderContext& renderContext);
+
 	void SetLineShader(Shader* shader) { m_lineShader = shader; }
 	void DrawTransformGizmos(const GameObject& object, RenderContext& renderContext, float aspect);
 
@@ -33,12 +37,16 @@ private:
 
 	void SendModelMatrix(Shader* shader, const GameObject& object);
 	void SendViewProjection(Shader* shader, RenderContext& renderContext, const float aspectRatio);
+	void SendOrthoProjection(RenderContext& renderContext);
 	void SendDirectionalLight(Shader* shader, const DirectionalLight& dirLight);
 	void SendAmbineteLight(Shader* shader, const AmbienteLight& ambineteLight);
 
 	
 
 	Shader* m_lineShader;
-	unsigned int m_lineVBO;
-	unsigned int m_lineVAO;
+	unsigned int m_lineVBO = -1;
+	unsigned int m_lineVAO = -1;
+	unsigned int m_textVBO = -1;
+	unsigned int m_textVAO = -1;
+
 };

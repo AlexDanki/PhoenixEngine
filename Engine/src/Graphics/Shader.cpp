@@ -93,3 +93,8 @@ GLuint Shader::GetDirectionalLightColorLocation() const { return m_directionalLi
 GLuint Shader::GetDirectionalLightIntensityLocation() const { return m_directionalLightIntensityLoc; }
 GLuint Shader::GetAmbineteColorLocation() const { return m_ambinetColorLoc; }
 GLuint Shader::GetAmbineteIntensityLocation() const { return m_ambinetIntensityLoc; }
+
+GLuint Shader::GetUniformLocation(const std::string& name)
+{
+	return glGetUniformLocation(m_program, name.c_str());
+}

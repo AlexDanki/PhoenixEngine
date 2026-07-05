@@ -3,6 +3,7 @@
 #include "Scene.h"
 //#include "App.h"
 #include "SceneSerializer.h"
+#include "AssetManager.h"
 #include <GLFW/glfw3.h>
 
 class App;
@@ -28,12 +29,14 @@ private:
 	bool m_sceneSaved = false;
 	char m_nameBuffer[256] = " ";
 	char m_tagBuffer[256] = " ";
+	char m_textBuffer[256] = " ";
 
 	App* m_app = nullptr;
 	GLFWwindow* m_window = nullptr;
 	Scene* m_scene = nullptr;
 	GameObject* m_selectedObject = nullptr;
 	SceneSerializer* m_seceneSerializer = nullptr;
+	AssetManager m_assetManager;
 
 	void DrawInspector();
 	void DrawHierarchy();

@@ -21,11 +21,15 @@ class App
 {
 public:
 	void Run();
+	void ShutDown();
 	const Scene& GetScene() const { return m_defaultScene; }
+	AssetManager& GetAssetManager() { return m_assetManager; }
 	
 	GameObject* CreateCube();
 	GameObject* CreatePlane();
 	GameObject* CreateCamera();
+	GameObject* CreateText();
+	GameObject* CreateEmpty();
 
 private:
 	bool m_isRunning = true;
@@ -38,12 +42,12 @@ private:
 	AssetManager m_assetManager;
 	PhysicsSystem m_physicsSytem;
 
-
 	GameObject* m_player = nullptr;
 	GameObject* m_ground = nullptr;
 	GameObject* m_mainCamera = nullptr;
 	GameObject* m_paddle = nullptr;
 	GameObject* m_ball = nullptr;
+	GameObject* m_score = nullptr;
 
 	SceneSerializer m_sceneSerializer;
 	EditorLayer m_editorLayer;
@@ -54,6 +58,7 @@ private:
 
 	// Assets
 	Shader* m_litShader;
+	Shader* m_textShader;
 
 	Texture* m_defaultTexture;
 	Texture* m_cameraTexture;

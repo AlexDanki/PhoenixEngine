@@ -48,6 +48,11 @@ struct SceneObjectData
 	bool useGravit = false;
 	float gravitScale = 1.0f;
 
+	// Object World Text
+	bool hasWorldText = false;
+	std::string worldText = "World Text";
+	float textScale = 1.0f;
+
 	// Object Scripts Components
 	std::vector<std::string> scriptsNames;
 };

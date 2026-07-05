@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 using GLuint = unsigned int;
 
@@ -24,6 +25,8 @@ public:
 	GLuint GetDirectionalLightIntensityLocation() const;
 	GLuint GetAmbineteColorLocation() const;
 	GLuint GetAmbineteIntensityLocation() const;
+
+	GLuint Shader::GetUniformLocation(const std::string& name);
 
 private:
 	GLuint m_program = 0;

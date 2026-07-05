@@ -1,5 +1,6 @@
 #include "AssetManager.h"
 #include "Texture.h"
+#include "Font.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -70,6 +71,28 @@ Shader* AssetManager::LoadShader(const std::string& vertPath, const std::string&
 
 }
 
+Font* AssetManager::LoadFont(const std::string& path)
+{
+	auto it = m_fonts.find(path);
+
+	if(it != m_fonts.end())
+	{
+		return it->second.get();
+	}
+
+	auto font = std::make_unique<Font>();
+	if(!font->Load(path))
+	{
+		std::cout << "Erro ao carregat Font: " << path << std::endl;
+		return nullptr;
+	}
+
+	Font* fontPtr = font.get();
+	m_fonts[path] = std::move(font);
+
+	return fontPtr;
+}
+
 MeshAsset* AssetManager::LoadMeshAsset(const std::string& path)
 {
 	auto it = m_meshAssets.find(path);
@@ -84,7 +107,7 @@ MeshAsset* AssetManager::LoadMeshAsset(const std::string& path)
 	if (!meshAsset->LoadFromFile(path)) return nullptr;
 
 	MeshAsset* meshAssetPtr = meshAsset.get();
-	
+	meshAssetPtr->SetFilePath(path);
 
 	m_meshAssets[path] = std::move(meshAsset);
 

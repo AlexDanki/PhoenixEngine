@@ -6,10 +6,12 @@
 #include "Transform.h"
 #include "RigidbodyComponent.h"
 #include "CameraComponent.h"
+#include "WorldTextRenderComponent.h"
 #include "RotatorScript.h"
 #include "BoxCollider.h"
 #include "ScriptComponent.h"
 #include "Material.h"
+#include "Font.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
@@ -49,72 +51,74 @@ void EditorLayer::Draw(float dt)
 void EditorLayer::DrawInspector()
 {
 	ImGui::Begin("Inspector");
+	
+	Transform& transform = m_selectedObject->GetTransform();
+
+	// Object Name
+	ui::AlignTextToFramePadding();
+	ui::Text("Object Name");
+	ui::SameLine();
+
+	if (ui::InputText("##Object Name", m_nameBuffer, sizeof(m_nameBuffer)))
+	{
+		m_selectedObject->SetName(m_nameBuffer);
+	}
+
+	// Object Tag
+	ui::AlignTextToFramePadding();
+	ui::Text("Tag");
+	ui::SameLine();
+	if (ui::InputText("##Tag Name", m_tagBuffer, sizeof(m_tagBuffer)))
+	{
+		m_selectedObject->SetTag(m_tagBuffer);
+	}
+
+	ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
+	ImGui::Separator();//----------------------------------------
+	ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
+	ui::Checkbox("Is Dinamic", &m_selectedObject->dinamic);
+
+	if (ui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
+		ui::AlignTextToFramePadding();
+		ui::Text("Position");
+		ui::SameLine();
+		ImGui::DragFloat3("##Position", &transform.position.x, 0.1f);
+
+		ui::AlignTextToFramePadding();
+		ui::Text("Rotation");
+		ui::SameLine();
+		ImGui::DragFloat3("##Rotation", &transform.rotation.x, 0.1f);
+
+		ui::Checkbox("Uniform scale", &m_uniformTranformScale);
+
+		if (m_uniformTranformScale)
+		{
+			float scale = transform.scale.x;
+
+			if (ui::DragFloat("All(x, y, z)", &scale, 0.1))
+			{
+				transform.scale.x = scale;
+				transform.scale.y = scale;
+				transform.scale.z = scale;
+			}
+
+		}
+		if (!m_uniformTranformScale)
+		{
+			ui::AlignTextToFramePadding();
+			ui::Text("Scale   ");
+			ui::SameLine();
+			ui::DragFloat3("##Scale", &transform.scale.x, 0.1);
+		}
+		ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
+	}
 	MeshComponent* meshComponent = m_selectedObject->GetComponent<MeshComponent>();
 	if (meshComponent)
 	{
 		Material* material = meshComponent->GetMaterial();
-		Transform& transform = m_selectedObject->GetTransform();
 
-		// Object Name
-		ui::AlignTextToFramePadding();
-		ui::Text("Object Name");
-		ui::SameLine();
-
-		if(ui::InputText("##Object Name", m_nameBuffer, sizeof(m_nameBuffer)))
-		{
-			m_selectedObject->SetName(m_nameBuffer);
-		}
-
-		// Object Tag
-		ui::AlignTextToFramePadding();
-		ui::Text("Tag");
-		ui::SameLine();
-		if(ui::InputText("##Tag Name", m_tagBuffer, sizeof(m_tagBuffer)))
-		{
-			m_selectedObject->SetTag(m_tagBuffer);
-		}
-
-		ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
-		ImGui::Separator();//----------------------------------------
-		ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
-		ui::Checkbox("Is Dinamic", &m_selectedObject->dinamic);
-
-		if (ui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
-			ui::AlignTextToFramePadding();
-			ui::Text("Position");
-			ui::SameLine();
-			ImGui::DragFloat3("##Position", &transform.position.x, 0.1f);
-
-			ui::AlignTextToFramePadding();
-			ui::Text("Rotation");
-			ui::SameLine();
-			ImGui::DragFloat3("##Rotation", &transform.rotation.x, 0.1f);
-
-			ui::Checkbox("Uniform scale", &m_uniformTranformScale);
-
-			if (m_uniformTranformScale)
-			{
-				float scale = transform.scale.x;
-
-				if(ui::DragFloat("All(x, y, z)", &scale, 0.1))
-				{
-					transform.scale.x = scale;
-					transform.scale.y = scale;
-					transform.scale.z = scale;
-				}
-
-			}
-			if(!m_uniformTranformScale)
-			{
-				ui::AlignTextToFramePadding();
-				ui::Text("Scale   ");
-				ui::SameLine();
-				ui::DragFloat3("##Scale", &transform.scale.x, 0.1);
-			}
-			ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
-		}
 		if (ui::CollapsingHeader("Mesh Renderer"))
 		{
 			if (material)
@@ -187,6 +191,17 @@ void EditorLayer::DrawInspector()
 			ImGui::Checkbox("Primary",&camera->primary);
 		}
 	}
+	if(auto textRenderer = m_selectedObject->GetComponent<WorldTextRenderComponent>())
+	{
+		if(ui::CollapsingHeader("TextRender"))
+		{
+			//m_textBuffer = textRenderer->GetText().c_str();
+			if(ui::InputText("Text", m_textBuffer, sizeof(m_textBuffer)))
+			{
+				textRenderer->SetText(m_textBuffer);
+			}
+		}
+	}
 
 	if (ImGui::CollapsingHeader("Script", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -218,12 +233,26 @@ void EditorLayer::DrawInspector()
 			}
 			
 		}
-		ui::Separator();
+		
 		if(!m_selectedObject->GetComponent<CameraComponent>())
 		{
+			ui::Separator();
 			if (ui::MenuItem("Camera"))
 			{
 				m_selectedObject->AddComponent(std::make_unique<CameraComponent>());
+			}
+		}
+		
+		if(!m_selectedObject->GetComponent<WorldTextRenderComponent>())
+		{
+			ui::Separator();
+			if (ui::MenuItem("TextRenderer"))
+			{
+				m_selectedObject->AddComponent(std::make_unique<WorldTextRenderComponent>());
+				WorldTextRenderComponent* tr = m_selectedObject->GetComponent<WorldTextRenderComponent>();
+				Font* font = m_app->GetAssetManager().LoadFont("Fonts/TheCat.ttf");
+				tr->SetFont(font);
+				strcpy_s(m_textBuffer, sizeof(m_textBuffer), tr->GetText().c_str());
 			}
 		}
 		ui::Separator();
@@ -291,6 +320,16 @@ void EditorLayer::DrawCreateObjects(float dt)
 		GameObject* plane = m_app->CreatePlane();
 		m_selectedObject = plane;
 	}
+	if (ImGui::Button("Create Text"))
+	{
+		GameObject* text = m_app->CreateText();
+		m_selectedObject = text;
+	}
+	if (ImGui::Button("Create Empty"))
+	{
+		GameObject* empty = m_app->CreateEmpty();
+		m_selectedObject = empty;
+	}
 	ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
 	ui::Separator();
 	ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
@@ -355,4 +394,10 @@ void EditorLayer::SetSelectedObject(GameObject* object)
 	m_selectedObject = object;
 	strcpy_s(m_tagBuffer, sizeof(m_tagBuffer), object->GetTag().c_str());
 	strcpy_s(m_nameBuffer, sizeof(m_nameBuffer), object->GetName().c_str());
+
+	if(auto tr = m_selectedObject->GetComponent<WorldTextRenderComponent>())
+	{
+		strcpy_s(m_textBuffer, sizeof(m_textBuffer), tr->GetText().c_str());
+	}
+	
 }

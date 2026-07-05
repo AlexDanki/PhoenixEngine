@@ -18,10 +18,13 @@
 #include "BallController.h"
 #include "RotatorScript.h"
 #include "EnemyPaddleController.h"
+#include "WorldTextRenderComponent.h"
 #include "GameManager.h"
 #include "Input.h"
 #include "Log.h"
 #include "ScriptRegistry.h"
+#include "FontLibrary.h"
+#include "Font.h"
 
 namespace ui = ImGui;
 
@@ -53,11 +56,15 @@ void App::Run()
 
 	Input::Init(m_window.GetNativeWindow());
 
+	FontLibrary::Init();
+
 
 	// Cria Shader
 	m_litShader = m_assetManager.LoadShader("Shaders/Lit.vert", "Shaders/Lit.frag");
 	Shader* lineShader = m_assetManager.LoadShader("Shaders/Line.vert", "Shaders/Line.frag");
 	m_renderer.SetLineShader(lineShader);
+
+	m_textShader = m_assetManager.LoadShader("Shaders/TextVertex.vert", "Shaders/TextFragment.frag");
 
 	// Configura Material 01
 	Texture* groundTex = m_assetManager.LoadTexture("Textures/GroundTex.png");
@@ -143,7 +150,10 @@ void App::Run()
 	RenderContext renderContext{
 		*m_currentScene,
 		m_camera,
-		aspect
+		aspect,
+		m_textShader,
+		m_window.GetWidth(),
+		m_window.GetHeight()
 	};
 
 	// Verifica se não existe Cena salva.
@@ -264,6 +274,11 @@ void App::Render()
 
 }
 
+void App::ShutDown()
+{
+	FontLibrary::ShutDown();
+}
+
 GameObject* App::CreateGameObject(std::string name, ObjectType type,  const char* assetPath, const char* texturePath, Material& material)
 {
 	Mesh* mesh = &m_assetManager.LoadMeshAsset(assetPath)->GetMesh();
@@ -302,7 +317,7 @@ GameObject* App::CreateAssetObject(std::string& assetPath, std::string& textureP
 	
 	GameObject* object = &m_currentScene->CreateGameObject("Asset", ObjectType::Asset);
 	Material* material = m_assetManager.CreateMaterial(texturePath, m_litShader);
-	object->AddComponent(std::make_unique<MeshComponent>(&asset->GetMesh(), material));
+	object->AddComponent(std::make_unique<MeshComponent>(asset, material));
 	object->SetAssetPath(assetPath.c_str());
 	return object;
 }
@@ -348,6 +363,24 @@ GameObject* App::CreateCamera()
 	return &camera;
 }
 
+GameObject* App::CreateText()
+{
+	std::string name = m_currentScene->GenerateUniqueName("Text");
+	GameObject& text = m_currentScene->CreateGameObject(name, ObjectType::Text);
+	text.AddComponent(std::make_unique<WorldTextRenderComponent>());
+	WorldTextRenderComponent* tr = text.GetComponent<WorldTextRenderComponent>();
+	Font* font = m_assetManager.LoadFont("Fonts/TheCat.ttf");
+	tr->SetFont(font);
+	return &text;
+}
+
+GameObject* App::CreateEmpty()
+{
+	std::string name = m_currentScene->GenerateUniqueName("Empty");
+	GameObject& empty = m_currentScene->CreateGameObject(name, ObjectType::Empty);
+	return &empty;
+}
+
 GameObject* App::CreateObjectFromData(SceneObjectData data)
 {
 	switch(data.type)
@@ -357,6 +390,12 @@ GameObject* App::CreateObjectFromData(SceneObjectData data)
 
 		case ObjectType::Plane:
 			return CreatePlane();
+
+		case ObjectType::Text:
+			return CreateText();
+
+		case ObjectType::Empty:
+			return CreateEmpty();
 
 		case ObjectType::Camera:
 			return CreateGameObject("Camera", ObjectType::Camera,
@@ -399,11 +438,14 @@ void App::LoadScene()
 			transform.scale.y = data.scale.y;
 			transform.scale.z = data.scale.z;
 
-			Material* material = object->GetComponent<MeshComponent>()->GetMaterial();
-			material->GetMaterialColor().x = data.color.x;
-			material->GetMaterialColor().y = data.color.y;
-			material->GetMaterialColor().z = data.color.z;
-
+			if(auto meshComponent = object->GetComponent<MeshComponent>())
+			{
+				Material* material = meshComponent->GetMaterial();
+				material->GetMaterialColor().x = data.color.x;
+				material->GetMaterialColor().y = data.color.y;
+				material->GetMaterialColor().z = data.color.z;
+			}
+			
 			// Adiciona BoxCollider
 			if(data.hasBoxCollider)
 			{
@@ -428,6 +470,15 @@ void App::LoadScene()
 				rigidBody->velocity.x = data.rigidbodyVelocity.x;
 				rigidBody->velocity.y = data.rigidbodyVelocity.y;
 				rigidBody->velocity.z = data.rigidbodyVelocity.z;
+			}
+
+			// Adiciona WorldTextRenderComponent
+			if (data.hasWorldText)
+			{
+				object->AddComponent(std::make_unique<WorldTextRenderComponent>());
+				auto worldText = object->GetComponent<WorldTextRenderComponent>();
+				worldText->SetText(data.worldText);
+				worldText->SetScale(data.textScale);
 			}
 
 			// Adiciona ScriptComponentes
