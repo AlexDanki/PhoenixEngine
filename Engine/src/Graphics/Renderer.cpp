@@ -16,6 +16,7 @@
 #include "Shader.h"
 #include "BoxCollider.h"
 #include "Font.h"
+#include "Fog.h"
 #include "ft2build.h"
 #include FT_FREETYPE_H
 
@@ -83,10 +84,12 @@ void Renderer::DrawMesh(const Mesh& mesh, Shader* shader)
 
 void Renderer::DrawScene(RenderContext& renderContext)
 {
+    Fog& fog = renderContext.scene.GetFog();
     for (const auto& gameObject : renderContext.scene.GetGameObjects())
     {
         DrawGameObject(*gameObject, renderContext);
     }
+
 }
 
 void Renderer::DrawGameObject(const GameObject& object, RenderContext& renderContext)
@@ -98,7 +101,6 @@ void Renderer::DrawGameObject(const GameObject& object, RenderContext& renderCon
 
 void Renderer::DrawMeshComponent(const GameObject& object, RenderContext& renderContext)
 {
-	const WorldTextRenderComponent* textRender = object.GetComponent<WorldTextRenderComponent>();
 
     const MeshComponent* meshComponent = object.GetComponent<MeshComponent>();
 
@@ -121,6 +123,8 @@ void Renderer::DrawMeshComponent(const GameObject& object, RenderContext& render
     SendDirectionalLight(shader, renderContext.scene.GetDirectionalLight());
     SendAmbineteLight(shader, renderContext.scene.GetAmbienteLight());
     SendModelMatrix(shader, object);
+    SendFog(shader, renderContext);
+    SendCameraPosition(shader, renderContext);
 
     glUniform3fv(shader->GetMaterialColorLocation(), 1, glm::value_ptr(material->GetMaterialColor()));
     glActiveTexture(GL_TEXTURE0);
@@ -188,9 +192,9 @@ void Renderer::DrawTextComponent(const GameObject& object, RenderContext& render
 		SendViewProjection(renderContext.textShader, renderContext, renderContext.aspectRatio);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 		cursorX += (character.advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64)
-        glDisable(GL_BLEND);
+        
     }
-
+    glDisable(GL_BLEND);
 }
 
 void Renderer::DrawLine(glm::vec3& start, glm::vec3& end, glm::vec3& color, glm::mat4& viewProjectionMatrix)
@@ -266,6 +270,40 @@ void Renderer::DrawBoxCollider(BoxCollider& boxCollider, glm::mat4 viewProjectio
     DrawLine(borders[3], borders[7], color, viewProjection);
 }
 
+void Renderer::DrawWorldGrid(int quantLines, glm::mat4 viewProjectionMatrix)
+{
+    glm::vec3 start{ 0.0 };
+    glm::vec3 end{ 0.0 };
+    
+    for(int x = -quantLines; x < quantLines + 1; x++)
+    {
+        if (x == 0)
+        {
+            // Down to Up im X Axis 
+            start = glm::vec3{ x, 0, quantLines };
+            end = glm::vec3{ x, 0, -quantLines };
+            DrawLine(start, end, glm::vec3{ Z_AXIS_COLOR }, viewProjectionMatrix);
+
+            // // Right to Left im Z axis 
+            start = glm::vec3{ quantLines, 0, x };
+            end = glm::vec3{ -quantLines, 0, x };
+            DrawLine(start, end, glm::vec3{X_AXIS_COLOR}, viewProjectionMatrix);
+        }
+        else
+        {
+            // Down to Up | | |
+            start = glm::vec3{ x, 0, quantLines };
+            end = glm::vec3{ x, 0, -quantLines };
+            DrawLine(start, end, glm::vec3{ GRID_COLOR }, viewProjectionMatrix);
+
+            // Right to Left <---
+            start = glm::vec3{ quantLines, 0, x };
+            end = glm::vec3{ -quantLines, 0, x };
+            DrawLine(start, end, glm::vec3{ GRID_COLOR }, viewProjectionMatrix);
+        }
+    }
+}
+
 void Renderer::SendModelMatrix(Shader* shader, const GameObject& object)
 {
     glm::mat4 model = object.GetTransform().GetMatrix();
@@ -301,4 +339,17 @@ void Renderer::SendAmbineteLight(Shader* shader, const AmbienteLight& ambineteLi
 {
     glUniform3fv(shader->GetAmbineteColorLocation(), 1, glm::value_ptr(ambineteLight.Color));
     glUniform1f(shader->GetAmbineteIntensityLocation(), ambineteLight.Intensity);
+}
+
+void Renderer::SendFog(Shader* shader, RenderContext& renderContext)
+{
+    // Enviar Fog para shaders
+    glUniform1i(shader->GetFogEnabledLocation(), renderContext.scene.GetFog().enabled);
+    glUniform3fv(shader->GetFogColorLocation(), 1, glm::value_ptr(renderContext.scene.GetFog().color));
+    glUniform1f(shader->GetFogDensityLocation(), renderContext.scene.GetFog().density);
+}
+
+void Renderer::SendCameraPosition(Shader* shader, RenderContext& renderContext)
+{
+    glUniform3fv(shader->GetCameraPositionLocation(), 1, glm::value_ptr(renderContext.scene.GetPrimaryCamera()->GetOwner()->GetTransform().GetPosition()));
 }

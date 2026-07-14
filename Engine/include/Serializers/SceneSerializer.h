@@ -30,6 +30,7 @@ struct SceneObjectData
 	glm::vec3 scale = glm::vec3(1.0f);
 
 	// Object Material
+	bool hasMeshComponent = false;
 	glm::vec3 color = glm::vec3(1.0f);
 
 	// Object Asset
@@ -69,7 +70,15 @@ public:
 	std::vector<SceneObjectData> LoadAllGameObjectsData(const std::string& path);
 	DirectionalLightdata LoadDirectionalLightData(const std::string& path);
 	AmbineteLightData LoadAmbienteLightdata(const std::string& path);
-	
-
 	bool SceneFileExists(const std::string& path);
+
+private:
+
+	void ReadTransformData(std::ifstream& file, SceneObjectData& data);
+	void ReadComponentData(std::ifstream& file, SceneObjectData& data);
+	void ReadMeshComponentData(std::ifstream& file, SceneObjectData& data);
+	void ReadBoxColliderComponentData(std::ifstream& file, SceneObjectData& data);
+	void ReadRigidbodyComponentData(std::ifstream& file, SceneObjectData& data);
+	void ReadWorldTextComponentData(std::ifstream& file, SceneObjectData& data);
+	void ReadScriptsComponentData(std::ifstream& file, SceneObjectData& data);
 };

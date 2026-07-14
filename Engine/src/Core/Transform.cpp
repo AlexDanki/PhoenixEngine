@@ -21,6 +21,14 @@ glm::vec3 Transform::GetPosition()
 	return glm::vec3(x, y, z);
 }
 
+const glm::vec3 Transform::GetPosition() const
+{
+	float x = position.x;
+	float y = position.y;
+	float z = position.z;
+	return glm::vec3(x, y, z);
+}
+
 glm::vec3 Transform::GetRotation()
 {
 	float x = rotation.x;
@@ -29,7 +37,23 @@ glm::vec3 Transform::GetRotation()
 	return glm::vec3(x, y, z);
 }
 
+const glm::vec3 Transform::GetRotation() const
+{
+	float x = rotation.x;
+	float y = rotation.y;
+	float z = rotation.z;
+	return glm::vec3(x, y, z);
+}
+
 glm::vec3 Transform::GetScale()
+{
+	float x = scale.x;
+	float y = scale.y;
+	float z = scale.z;
+	return glm::vec3(x, y, z);
+}
+
+const glm::vec3 Transform::GetScale() const
 {
 	float x = scale.x;
 	float y = scale.y;

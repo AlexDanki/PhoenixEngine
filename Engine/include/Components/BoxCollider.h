@@ -17,6 +17,7 @@ public:
 
 	void UpdateBounds();
 	void OnAttach() override;
+	void Serialize(std::ofstream& file) const override;
 	std::array<glm::vec3, 8> GetCorners();
 	bool Intersects(BoxCollider& other);
 

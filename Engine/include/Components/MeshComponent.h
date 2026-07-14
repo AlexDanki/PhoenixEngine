@@ -8,6 +8,9 @@ class Material;
 class MeshComponent : public Component
 {
 public:
+	static constexpr const char* ComponentName = "MeshComponent";
+
+	explicit MeshComponent();
 	explicit MeshComponent(Mesh* mesh, Material* material);
 	explicit MeshComponent(MeshAsset* meshAsset, Material* material);
 	void OnAttach() override;
@@ -15,7 +18,6 @@ public:
 	Material* GetMaterial() const;
 
 	void Serialize(std::ofstream& file) const override;
-	void Deserialize(std::ifstream& file) const override;
 
 private:
 	Mesh* m_mesh = nullptr;

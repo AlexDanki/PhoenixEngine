@@ -1,18 +1,19 @@
 cmake_minimum_required(VERSION	3.20)
 
-project(PhoenixEngine)
+project(MunitaEngine)
 
 add_subdirectory(Engine)
-add_subdirectory(Sandbox)
+add_subdirectory(MunitaEditor)
+add_subdirectory(Runtime)
 
 target_include_directories(
-    PhoenixEngine
+    MunitaEngine
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty 
 )
 
 target_include_directories(
-    PhoenixEngine
+    MunitaEngine
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Assets
 )

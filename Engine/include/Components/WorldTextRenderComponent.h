@@ -2,12 +2,18 @@
 #include <glm/glm.hpp>
 #include <string>
 #include "Component.h"
+#include <fstream>
 
 class Font;
 
 class WorldTextRenderComponent : public Component
 {
 public:
+
+	static constexpr const char* ComponentName = "WorldTextRender";
+
+	void Serialize(std::ofstream& file) const override;
+
 	void SetText(const std::string& text);
 	const std::string& GetText() const ;
 

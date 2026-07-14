@@ -1,7 +1,16 @@
 #include "MeshComponent.h"
 #include "GameObject.h"
 #include "MeshAsset.h"
+#include "Material.h"
+#include "SerializeUtils.h"
 
+MeshComponent::MeshComponent()
+	: m_mesh(nullptr),
+	m_material(nullptr),
+	m_meshAsset(nullptr)
+{
+
+}
 MeshComponent::MeshComponent(Mesh* mesh, Material* material)
 	: m_mesh(mesh),
 	m_material(material)
@@ -47,12 +56,12 @@ void MeshComponent::Serialize(std::ofstream& file) const
 	{
 		// Mesh gerada em tempo de execução, não há caminho de arquivo para serializar
 	}
-	
 
-	file << "END_MESH_RENDERER\n";
-}
+	file << "TEXTURE\n";
+	file << GetOwner()->GetTexturePath() << "\n";
 
-void MeshComponent::Deserialize(std::ifstream& file) const
-{
+	file << "COLOR\n";
+	SerializeUtils::WriteVec3(file, m_material->GetMaterialColor());
 
+	file << "END_COMPONENT\n";
 }

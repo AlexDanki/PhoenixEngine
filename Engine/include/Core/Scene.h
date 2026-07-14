@@ -7,6 +7,7 @@
 #include "DirectionalLight.h"
 #include "AmbienteLight.h"
 #include "CameraComponent.h"
+#include "Fog.h"
 
 //class GameObject;
 
@@ -47,8 +48,12 @@ public:
 	// Retorna o primiero objeto da hierarquia com nome apontado
 	GameObject* GetGameObjectByName(const std::string& name);
 
+	Fog& GetFog() { return m_fog; };
+	const Fog& GetFog() const { return m_fog; }
+
 private:
 	std::vector<std::unique_ptr<GameObject>> m_gameObjects;
 	DirectionalLight m_directionalLight;
 	AmbienteLight m_ambienteLight;
+	Fog m_fog;
 };

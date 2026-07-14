@@ -13,6 +13,7 @@
 #include "DirectionalLight.h"
 #include "AmbienteLight.h"
 #include "Log.h"
+#include "SerializeUtils.h"
 
 bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 {
@@ -65,133 +66,7 @@ bool SceneSerializer::Save(const Scene& scene, const std::string& path)
 
 	for(auto& object : scene.GetGameObjects())
 	{
-		/*Transform& transform = object->GetTransform();
-		glm::vec3 materialColor = object->GetComponent<MeshComponent>()->GetMaterial()->GetMaterialColor();*/
-
-		SceneObjectData data = BuildSceneObjectData(*object);
-
-		std::string objectType = "Asset";
-
-		if(data.type == ObjectType::Cube)
-		{
-			objectType = "Cube";
-		}
-		else if(data.type == ObjectType::Plane)
-		{
-			objectType = "Plane";
-		}
-		else if(data.type == ObjectType::Camera)
-		{
-			objectType = "Camera";
-		}
-		else if(data.type == ObjectType::Text)
-		{
-			objectType = "Text";
-		}
-		else if(data.type == ObjectType::Empty)
-		{
-			objectType = "Empty";
-		}
-		else if(data.type == ObjectType::Asset)
-		{
-			objectType = "Asset";
-		}
-
-
-		file << objectType
-			<< " "
-			// Object Info
-			<< data.name
-			<< " "
-			<< data.tag
-			<< " "
-			// Object Transform
-			<< data.position.x
-			<< " "
-			<< data.position.y
-			<< " "
-			<< data.position.z
-
-			<< " "
-			<< data.rotation.x
-			<< " "
-			<< data.rotation.y
-			<< " "
-			<< data.rotation.z
-
-			<< " "
-			<< data.scale.x
-			<< " "
-			<< data.scale.y
-			<< " "
-			<< data.scale.z
-
-			// Object Material
-			<< " "
-			<< data.color.x
-			<< " "
-			<< data.color.y
-			<< " "
-			<< data.color.z
-
-			// Object Asset
-			<< " "
-			<< data.assetPath
-
-			// Object Texture
-			<< " "
-			<< data.texturePath
-
-			// Object BoxCollider
-			<< " "
-			<< data.hasBoxCollider
-			<< " "
-			<< data.isTrigger
-
-			<< " "
-			<< data.boxCenter.x
-			<< " "
-			<< data.boxCenter.y
-			<< " "
-			<< data.boxCenter.z
-
-			<< " "
-			<< data.boxSize.x
-			<< " "
-			<< data.boxSize.y
-			<< " "
-			<< data.boxSize.z
-
-			// Object Rigidbody
-			<< " "
-			<< data.hasRigidbody
-			<< " "
-			<< data.rigidbodyVelocity.x
-			<< " "
-			<< data.rigidbodyVelocity.y
-			<< " "
-			<< data.rigidbodyVelocity.z
-			<< " "
-			<< data.useGravit
-			<< " "
-			<< data.gravitScale
-
-			// Object World Text
-			<< " "
-			<< data.hasWorldText
-			<< " "
-			<< data.worldText
-			<< " "
-			<< data.textScale
-			<< "\n"
-			<< "SCRIPTS\n";
-
-		for(auto scriptName : data.scriptsNames)
-		{
-			file << scriptName << "\n";
-			
-		}
-		file << "END SCRIPTS\n";
+		object->Serialize(file);
 	}
 
 	file.close();
@@ -227,6 +102,7 @@ SceneObjectData SceneSerializer::BuildSceneObjectData(GameObject& object)
 
 	if (auto meshComponent = object.GetComponent<MeshComponent>())
 	{
+		data.hasMeshComponent = true;
 		glm::vec3 materialColor = meshComponent->GetMaterial()->GetMaterialColor();
 		data.color = materialColor;
 	}
@@ -288,135 +164,265 @@ std::vector<SceneObjectData> SceneSerializer::LoadAllGameObjectsData(const std::
 	
 	bool startLoad = false;
 	bool readingScripts = false;
-	SceneObjectData currentObject = SceneObjectData();
+	//SceneObjectData currentObject = SceneObjectData();
 
 	while(std::getline(file, line))
 	{
 
-		if(line == "GAMEOBJECTS")
+		if(line == "GAMEOBJECT")
 		{
-			startLoad = true;
-			continue;
+			SceneObjectData data;
+			while(std::getline(file, line))
+			{
+				if(line == "END_GAMEOBJECT")
+				{
+					sceneData.push_back(data);
+					break;
+				}
+				if (line == "TYPE")
+				{
+					std::getline(file, line);
+					data.type = static_cast<ObjectType>(std::stoi(line));
+					continue;
+				}
+
+				if (line == "NAME")
+				{
+					std::getline(file, line);
+					data.name = line;
+					continue;
+				}
+
+				if (line == "TAG")
+				{
+					std::getline(file, line);
+					data.tag = line;
+					continue;
+				}
+
+				if (line == "TRANSFORM")
+				{
+					ReadTransformData(file, data);
+					continue;
+				}
+
+				if(line == "COMPONENT")
+				{
+					ReadComponentData(file, data);
+					continue;
+				}
+			} // End While
+
 		}
-
-		if(!startLoad)
-		{
-			continue;
-		}
-
-		if(line == "SCRIPTS")
-		{
-			readingScripts = true;
-			continue;
-		}
-
-		if(line == "END SCRIPTS")
-		{
-			readingScripts = false;
-			sceneData.push_back(currentObject);
-			currentObject = SceneObjectData();
-			continue;
-		}
-
-		if(readingScripts)
-		{
-			currentObject.scriptsNames.push_back(line);
-			continue;
-		}
-
-		std::stringstream ss(line);
-		std::string typeString;
-		
-		// Object Info
-		ss >> typeString;
-		ss >> currentObject.name;
-		ss >> currentObject.tag;
-
-		// Object Transform
-		ss >> currentObject.position.x;
-		ss >> currentObject.position.y;
-		ss >> currentObject.position.z;
-
-		ss >> currentObject.rotation.x;
-		ss >> currentObject.rotation.y;
-		ss >> currentObject.rotation.z;
-
-		ss >> currentObject.scale.x;
-		ss >> currentObject.scale.y;
-		ss >> currentObject.scale.z;
-
-		// Object Material
-		ss >> currentObject.color.x;
-		ss >> currentObject.color.y;
-		ss >> currentObject.color.z;
-
-		// Object Asset
-		ss >> currentObject.assetPath;
-		ss >> currentObject.texturePath;
-
-		// Object BoxCollider
-		ss >> currentObject.hasBoxCollider;
-		ss >> currentObject.isTrigger;
-
-		ss >> currentObject.boxCenter.x;
-		ss >> currentObject.boxCenter.y;
-		ss >> currentObject.boxCenter.z;
-
-		ss >> currentObject.boxSize.x;
-		ss >> currentObject.boxSize.y;
-		ss >> currentObject.boxSize.z;
-
-		// Object Rigidbody
-		ss >> currentObject.hasRigidbody;
-
-		ss >> currentObject.rigidbodyVelocity.x;
-		ss >> currentObject.rigidbodyVelocity.y;
-		ss >> currentObject.rigidbodyVelocity.z;
-
-		ss >> currentObject.useGravit;
-		ss >> currentObject.gravitScale;
-
-		// Object World Text
-
-		ss >> currentObject.hasWorldText;
-		ss >> currentObject.worldText;
-		ss >> currentObject.textScale;
-
-		ObjectType objectType = ObjectType::Cube;
-
-		if(typeString == "Cube")
-		{
-			objectType = ObjectType::Cube;
-		}
-		else if (typeString == "Plane")
-		{
-			objectType = ObjectType::Plane;
-		}
-		else if (typeString == "Camera")
-		{
-			objectType = ObjectType::Camera;
-		}
-		else if (typeString == "Text")
-		{
-			objectType = ObjectType::Text;
-		}
-		else if (typeString == "Empty")
-		{
-			objectType = ObjectType::Empty;
-		}
-		else if (typeString == "Asset")
-		{
-			objectType = ObjectType::Asset;
-		}
-
-		// Preencher Scripts
-
-		currentObject.type = objectType;
-
 	}
 
 	return sceneData;
 
+}
+
+void SceneSerializer::ReadTransformData(std::ifstream& file, SceneObjectData& data)
+{
+	std::string line;
+
+	std::getline(file, line);
+
+	std::stringstream ss(line);
+
+	ss >>
+		data.position.x >>
+		data.position.y >>
+		data.position.z;
+
+	//-------------------
+
+	std::getline(file, line);
+
+	std::stringstream sr(line);
+
+	sr >>
+		data.rotation.x >>
+		data.rotation.y >>
+		data.rotation.z;
+
+	//-------------------
+
+	std::getline(file, line);
+
+	std::stringstream sc(line);
+
+	sc >>
+		data.scale.x >>
+		data.scale.y >>
+		data.scale.z;
+}
+
+void SceneSerializer::ReadComponentData(std::ifstream& file, SceneObjectData& data)
+{
+	std::string line;
+
+	std::getline(file, line);
+	
+	if(line == "MESH_RENDERER")
+	{
+		ReadMeshComponentData(file, data);
+	}
+	else if( line == "BOX_COLLIDER")
+	{
+		ReadBoxColliderComponentData(file, data);
+	}
+	else if( line == "RIGIDBODY")
+	{
+		ReadRigidbodyComponentData(file, data);
+	}
+	else if( line == "WORLD_TEXT")
+	{
+		ReadWorldTextComponentData(file, data);
+	}
+	else if(line == "SCRIPT")
+	{
+		ReadScriptsComponentData(file, data);
+	}
+	
+}
+
+void SceneSerializer::ReadMeshComponentData(std::ifstream& file, SceneObjectData& data)
+{
+	std::string line;
+	data.hasMeshComponent = true;
+
+	while (std::getline(file, line))
+	{
+		if (line == "END_COMPONENT")
+		{
+			break;
+		}
+		else if (line == "MESH")
+		{
+			std::getline(file, data.assetPath);
+		}
+		else if(line == "TEXTURE")
+		{
+			std::getline(file, data.texturePath);
+		}
+		else if(line == "COLOR")
+		{
+			std::getline(file, line);
+			std::stringstream cs(line);
+			cs >> data.color.x >> data.color.y >> data.color.z;
+		}
+	}
+}
+
+void SceneSerializer::ReadBoxColliderComponentData(std::ifstream& file, SceneObjectData& data)
+{
+	std::string line;
+
+	data.hasBoxCollider = true;
+
+	while(std::getline(file, line))
+	{
+		if(line == "END_COMPONENT")
+		{
+			break;
+		}
+		else if (line == "IS_TRIGGER")
+		{
+			std::getline(file, line);
+			data.isTrigger = std::stoi(line);
+		}
+		else if(line == "CENTER")
+		{
+			data.boxCenter =  SerializeUtils::ReadVec3(file);
+		}
+		else if(line == "SIZE")
+		{
+			data.boxSize = SerializeUtils::ReadVec3(file);
+		}
+		
+	}
+}
+
+void SceneSerializer::ReadRigidbodyComponentData(std::ifstream& file, SceneObjectData& data)
+{
+	std::string line;
+	data.hasRigidbody = true;
+
+	while(std::getline(file, line))
+	{
+		if(line == "END_COMPONENT")
+		{
+			break;
+		}
+		else if(line == "USE_GRAVIT")
+		{
+			std::getline(file, line);
+			data.useGravit = std::stoi(line);
+		}
+		else if(line == "GRAVIT_SCALE")
+		{
+			std::getline(file, line);
+			data.gravitScale = std::stof(line);
+		}
+	}
+}
+
+void SceneSerializer::ReadWorldTextComponentData(std::ifstream& file, SceneObjectData& data)
+{
+	std::string line;
+	data.hasWorldText = true;
+
+	while(std::getline(file, line))
+	{
+		if(line == "END_COMPONENT")
+		{
+			break;
+		}
+		
+		else if(line == "TEXT")
+		{
+			data.worldText.clear();
+			while(std::getline(file, line))
+			{
+				if(line == "END_TEXT")
+				{
+					break;
+				}
+
+				if(!data.worldText.empty())
+				{
+					data.worldText += '\n';
+				}
+
+				data.worldText += line;
+			}
+		}
+		else if(line == "SCALE")
+		{
+			std::getline(file, line);
+			data.textScale = std::stof(line);
+		}
+
+	}
+}
+
+void SceneSerializer::ReadScriptsComponentData(std::ifstream& file, SceneObjectData& data)
+{
+	std::string line;
+
+	while(std::getline(file, line))
+	{
+		if(line == "END_COMPONENT")
+		{
+			break;
+		}
+
+		if(line == "CLASS")
+		{
+			std::getline(file, line);
+			data.scriptsNames.push_back(line);
+			//std::cout << "Script Name: " << line << std::endl;
+		}
+	}
 }
 
 DirectionalLightdata SceneSerializer::LoadDirectionalLightData(const std::string& path)

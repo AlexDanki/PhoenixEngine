@@ -14,25 +14,43 @@
 #include "BoxCollider.h"
 #include "EditorLayer.h"
 #include "PhysicsSystem.h"
+#include "EngineTime.h"
 
 struct RenderContext;
 
 class App
 {
 public:
+	~App();
 	void Run();
-	void ShutDown();
+	
 	const Scene& GetScene() const { return m_defaultScene; }
 	AssetManager& GetAssetManager() { return m_assetManager; }
-	
+	Mse::Time m_time;
+
+	bool IsRunning();
+	void Initialize();
+	void StartFrame();
+	void Update();
+	void FixedStep();
+	void Render();
+	void EndFrame();
+	void ShutDown();
+
 	GameObject* CreateCube();
 	GameObject* CreatePlane();
 	GameObject* CreateCamera();
 	GameObject* CreateText();
 	GameObject* CreateEmpty();
 
+	GLFWwindow* GetNativeWindow() { return m_window.GetNativeWindow(); }
+
 private:
 	bool m_isRunning = true;
+	float m_deltaTime = 0.0f;
+	float m_accumulator = 0.0f;
+
+	// Time
 
 	Window m_window{ "Munita", 1280, 720 };
 	Renderer m_renderer;
@@ -50,7 +68,7 @@ private:
 	GameObject* m_score = nullptr;
 
 	SceneSerializer m_sceneSerializer;
-	EditorLayer m_editorLayer;
+	//EditorLayer m_editorLayer;
 
 	bool m_SceneSaved = false;
 	bool m_uniformTranformScale = true;
@@ -77,12 +95,9 @@ private:
 	Mesh m_cubeMesh;	
 	
 	//Material
-
-	void Start();
 	void ProcessInput();
-	void Update(float dt);
 	void FixedUpdate(float dt);
-	void Render();
+
 
 	//GameObject* CreateObjectFromType(ObjectType type);
 	GameObject* CreateObjectFromData(SceneObjectData data);

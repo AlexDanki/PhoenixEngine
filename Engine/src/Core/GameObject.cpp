@@ -1,6 +1,7 @@
 //#include "Component.h"
 #include "GameObject.h"
 #include "ScriptComponent.h"
+#include "serializeUtils.h"
 
 
 GameObject::GameObject(const std::string& name, ObjectType type)
@@ -99,6 +100,7 @@ void GameObject::Serialize(std::ofstream& file) const
 	// Serializar a posição, rotação e escala do GameObject
 	SerializeTransform(file);
 	SerializeComponents(file);
+	SerializeScripts(file);
 	
 	file << "END_GAMEOBJECT\n";
 }
@@ -108,20 +110,9 @@ void GameObject::SerializeTransform(std::ofstream& file) const
 {
 	file << "TRANSFORM\n";
 
-	file << "POSITION\n";
-	file << m_transform.position.x << " " 
-		<< m_transform.position.y << " " 
-		<< m_transform.position.z << "\n";
-
-	file << "ROTATION\n";
-	file << m_transform.rotation.x << " "
-		<< m_transform.rotation.y << " "
-		<< m_transform.rotation.z << "\n";
-
-	file << "SCALE\n";
-	file << m_transform.scale.x << " "
-		<< m_transform.scale.y << " "
-		<< m_transform.scale.z << "\n";
+	SerializeUtils::WriteVec3(file, m_transform.GetPosition());
+	SerializeUtils::WriteVec3(file, m_transform.GetRotation());
+	SerializeUtils::WriteVec3(file, m_transform.GetScale());
 }
 
 // Serializa os componentes do GameObject para um arquivo
@@ -130,5 +121,20 @@ void GameObject::SerializeComponents(std::ofstream& file) const
 	for (const auto& component : m_components)
 	{
 		component->Serialize(file);
+	}
+}
+
+
+void GameObject::SerializeScripts(std::ofstream& file) const
+{
+	for (const auto& script: m_scriptsComponentsNames)
+	{
+		file << "COMPONENT\n";
+		file << "SCRIPT\n";
+
+		file << "CLASS\n";
+		file << script << "\n";
+
+		file << "END_COMPONENT\n";
 	}
 }

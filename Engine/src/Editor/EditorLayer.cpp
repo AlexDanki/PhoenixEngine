@@ -52,7 +52,7 @@ void EditorLayer::DrawInspector()
 {
 	ImGui::Begin("Inspector");
 	
-	Transform& transform = m_selectedObject->GetTransform();
+	Transform* transform = &m_selectedObject->GetTransform();
 
 	// Object Name
 	ui::AlignTextToFramePadding();
@@ -80,37 +80,40 @@ void EditorLayer::DrawInspector()
 
 	if (ui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
-		ui::AlignTextToFramePadding();
-		ui::Text("Position");
-		ui::SameLine();
-		ImGui::DragFloat3("##Position", &transform.position.x, 0.1f);
-
-		ui::AlignTextToFramePadding();
-		ui::Text("Rotation");
-		ui::SameLine();
-		ImGui::DragFloat3("##Rotation", &transform.rotation.x, 0.1f);
-
-		ui::Checkbox("Uniform scale", &m_uniformTranformScale);
-
-		if (m_uniformTranformScale)
+		if(transform)
 		{
-			float scale = transform.scale.x;
-
-			if (ui::DragFloat("All(x, y, z)", &scale, 0.1))
-			{
-				transform.scale.x = scale;
-				transform.scale.y = scale;
-				transform.scale.z = scale;
-			}
-
-		}
-		if (!m_uniformTranformScale)
-		{
+			ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
 			ui::AlignTextToFramePadding();
-			ui::Text("Scale   ");
+			ui::Text("Position");
 			ui::SameLine();
-			ui::DragFloat3("##Scale", &transform.scale.x, 0.1);
+			ImGui::DragFloat3("##Position", &transform->position.x, 0.1f);
+
+			ui::AlignTextToFramePadding();
+			ui::Text("Rotation");
+			ui::SameLine();
+			ImGui::DragFloat3("##Rotation", &transform->rotation.x, 0.1f);
+
+			ui::Checkbox("Uniform scale", &m_uniformTranformScale);
+
+			if (m_uniformTranformScale)
+			{
+				float scale = transform->scale.x;
+
+				if (ui::DragFloat("All(x, y, z)", &scale, 0.1))
+				{
+					transform->scale.x = scale;
+					transform->scale.y = scale;
+					transform->scale.z = scale;
+				}
+
+			}
+			if (!m_uniformTranformScale)
+			{
+				ui::AlignTextToFramePadding();
+				ui::Text("Scale   ");
+				ui::SameLine();
+				ui::DragFloat3("##Scale", &transform->scale.x, 0.1);
+			}
 		}
 		ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
 	}
@@ -196,7 +199,7 @@ void EditorLayer::DrawInspector()
 		if(ui::CollapsingHeader("TextRender"))
 		{
 			//m_textBuffer = textRenderer->GetText().c_str();
-			if(ui::InputText("Text", m_textBuffer, sizeof(m_textBuffer)))
+			if(ui::InputTextMultiline("Text", m_textBuffer, sizeof(m_textBuffer), ImVec2(250, 120)))
 			{
 				textRenderer->SetText(m_textBuffer);
 			}
@@ -375,7 +378,7 @@ void EditorLayer::DrawCreateObjects(float dt)
 }
 void EditorLayer::DrawLights()
 {
-	ImGui::Begin("Lighting");
+	ImGui::Begin("Enviromment");
 	ImGui::Text("Directional Light");
 	ImGui::DragFloat3("Direction", glm::value_ptr(m_scene->GetDirectionalLight().Direction));
 	ImGui::ColorEdit3("D_Color", glm::value_ptr(m_scene->GetDirectionalLight().Color));
@@ -385,7 +388,7 @@ void EditorLayer::DrawLights()
 	ImGui::Dummy(ImVec2(0.0f, m_dammySpacing));
 	ImGui::Text("Ambiente");
 	ImGui::ColorEdit3("A_Color", glm::value_ptr(m_scene->GetAmbienteLight().Color));
-	ImGui::DragFloat("A_Intensity", &m_scene->GetAmbienteLight().Intensity, 1.0);
+	ImGui::DragFloat("A_Intensity", &m_scene->GetAmbienteLight().Intensity, 0.0f, 0.0f, 10.0);
 	ImGui::End(); // END LIGHT
 }
 

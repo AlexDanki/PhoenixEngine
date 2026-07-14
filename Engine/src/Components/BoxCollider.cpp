@@ -1,6 +1,7 @@
 #include "BoxCollider.h"
 #include "GameObject.h"
 #include <iostream>
+#include "SerializeUtils.h"
 
 BoxCollider::BoxCollider()
 {
@@ -11,6 +12,23 @@ void BoxCollider::OnAttach()
 {
 	m_transform = &GetOwner()->GetTransform();
 	UpdateBounds();
+}
+
+void BoxCollider::Serialize(std::ofstream& file) const
+{
+    file << "COMPONENT\n";
+    file << "BOX_COLLIDER\n";
+
+    file << "IS_TRIGGER\n";
+    file << isTrigger << "\n";
+
+    file << "CENTER\n";
+    SerializeUtils::WriteVec3(file, m_center);
+
+    file << "SIZE\n";
+    SerializeUtils::WriteVec3(file, m_size);
+
+    file << "END_COMPONENT\n";
 }
 
 void BoxCollider::UpdateBounds()

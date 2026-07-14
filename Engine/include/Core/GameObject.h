@@ -134,4 +134,5 @@ private:
 	// Funções auxiliares para serialização
 	void SerializeTransform(std::ofstream& file) const;
 	void SerializeComponents(std::ofstream& file) const;
+	void SerializeScripts(std::ofstream& file) const;
 };

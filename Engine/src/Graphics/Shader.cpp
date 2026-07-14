@@ -56,18 +56,8 @@ bool Shader::Create(const char* vertShaderFile, const char* fragShaderFile)
 		return false;
 	}
 
-
-	m_modelLocation = glGetUniformLocation(m_program, "u_Model");
-	m_viewProjectionLocation = glGetUniformLocation(m_program, "u_ViewProjection");
-	m_materialColorLocation = glGetUniformLocation(m_program, "u_MaterialColor");
-	m_textureLocation = glGetUniformLocation(m_program, "u_Texture");
-	m_colorLocation = glGetUniformLocation(m_program, "u_Color");
-
-	m_directionalLightLoc = glGetUniformLocation(m_program, "u_sun.Direction");;
-	m_directionalLightColorLoc = glGetUniformLocation(m_program, "u_sun.Color");;
-	m_directionalLightIntensityLoc = glGetUniformLocation(m_program, "u_sun.Intensity");;
-	m_ambinetColorLoc = glGetUniformLocation(m_program, "u_AmbienteColor");;
-	m_ambinetIntensityLoc = glGetUniformLocation(m_program, "u_AmbienteIntensity");;
+	// Procura todos os uniforms nos shaders
+	SearchAllUniformLocations();
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragShader);
@@ -82,19 +72,66 @@ void Shader::Use()
 	glUseProgram(m_program);
 }
 
-GLuint Shader::GetModelLocation() const { return m_modelLocation; }
-GLuint Shader::GetViewProjectionLocation() const { return m_viewProjectionLocation; }
-GLuint Shader::GetMaterialColorLocation() const { return m_materialColorLocation; }
-GLuint Shader::GetTextureLoc() const { return m_textureLocation; }
-GLuint Shader::GetColorLocation() const { return m_colorLocation; }
+// Procura todos os uniforms nos shaders
+void Shader::SearchAllUniformLocations()
+{
+	// Camera Location
+	m_cameraPositionLocation = GetUniformLocation("u_CameraPosition");
 
-GLuint Shader::GetDirectionalLightLocation() const { return m_directionalLightLoc; }
-GLuint Shader::GetDirectionalLightColorLocation() const { return m_directionalLightColorLoc; }
-GLuint Shader::GetDirectionalLightIntensityLocation() const { return m_directionalLightIntensityLoc; }
-GLuint Shader::GetAmbineteColorLocation() const { return m_ambinetColorLoc; }
-GLuint Shader::GetAmbineteIntensityLocation() const { return m_ambinetIntensityLoc; }
+	// Model Location
+	m_modelLocation = GetUniformLocation("u_Model");
 
+	// Camera Location
+	m_viewProjectionLocation = GetUniformLocation("u_ViewProjection");
+
+	// Material Locations
+	m_materialColorLocation = GetUniformLocation("u_MaterialColor");
+	m_textureLocation = GetUniformLocation("u_Texture");
+	m_colorLocation = GetUniformLocation("u_Color");
+
+	// Enviromments Locations
+	m_directionalLightLoc = GetUniformLocation("u_sun.Direction");
+	m_directionalLightColorLoc = GetUniformLocation("u_sun.Color");
+	m_directionalLightIntensityLoc = GetUniformLocation("u_sun.Intensity");
+	m_ambinetColorLoc = GetUniformLocation("u_AmbienteColor");
+	m_ambinetIntensityLoc = GetUniformLocation("u_AmbienteIntensity");
+	
+	m_fogEnabledLoc = GetUniformLocation("u_Fog.Enabled");
+	m_fogColorLoc = GetUniformLocation("u_Fog.Color");
+	m_fogDensityLoc = GetUniformLocation("u_Fog.Density");
+}
+
+// Pega uniforms no shader do programa
 GLuint Shader::GetUniformLocation(const std::string& name)
 {
 	return glGetUniformLocation(m_program, name.c_str());
 }
+
+
+
+// FUNÇÕES PARA PEGAR AS LOCALIZAÇÕES DOS UNIFORMS NOS SHADERS
+// Camera Location
+GLuint Shader::GetCameraPositionLocation() const { return m_cameraPositionLocation; }
+
+// Model Location
+GLuint Shader::GetModelLocation() const { return m_modelLocation; }
+
+// Camera Location
+GLuint Shader::GetViewProjectionLocation() const { return m_viewProjectionLocation; }
+
+// Material Locations
+GLuint Shader::GetMaterialColorLocation() const { return m_materialColorLocation; }
+GLuint Shader::GetTextureLoc() const { return m_textureLocation; }
+GLuint Shader::GetColorLocation() const { return m_colorLocation; }
+
+// Enviromments Locations
+GLuint Shader::GetDirectionalLightLocation() const { return m_directionalLightLoc; }	// Direactional Lights
+GLuint Shader::GetDirectionalLightColorLocation() const { return m_directionalLightColorLoc; }
+GLuint Shader::GetDirectionalLightIntensityLocation() const { return m_directionalLightIntensityLoc; }
+
+GLuint Shader::GetAmbineteColorLocation() const { return m_ambinetColorLoc; }			// Ambinete Lights
+GLuint Shader::GetAmbineteIntensityLocation() const { return m_ambinetIntensityLoc; }
+
+GLuint Shader::GetFogEnabledLocation() const { return m_fogEnabledLoc; }				// Fog
+GLuint Shader::GetFogColorLocation() const { return m_fogColorLoc; }				
+GLuint Shader::GetFogDensityLocation() const { return m_fogDensityLoc; }			

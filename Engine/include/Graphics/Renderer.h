@@ -15,9 +15,14 @@ class Shader;
 class BoxCollider;
 struct RenderContext;
 
+constexpr glm::vec3 GRID_COLOR{ 0.35f, 0.35f, 0.35f };
+constexpr glm::vec3 X_AXIS_COLOR{ 0.6f, 0.0f, 0.0f };
+constexpr glm::vec3 Z_AXIS_COLOR{ 0.0f, 0.0f, 1.0f };
+
 class Renderer
 {
 public:
+
 	void Init();
 	void Clear();
 	void DrawMesh(const Mesh& mesh, Shader* shader);
@@ -33,6 +38,8 @@ public:
 	void SetLineShader(Shader* shader) { m_lineShader = shader; }
 	void DrawTransformGizmos(const GameObject& object, RenderContext& renderContext, float aspect);
 
+	void DrawWorldGrid(int quantLines, glm::mat4 viewProjectionMatrix);
+
 private:
 
 	void SendModelMatrix(Shader* shader, const GameObject& object);
@@ -40,8 +47,8 @@ private:
 	void SendOrthoProjection(RenderContext& renderContext);
 	void SendDirectionalLight(Shader* shader, const DirectionalLight& dirLight);
 	void SendAmbineteLight(Shader* shader, const AmbienteLight& ambineteLight);
-
-	
+	void SendFog(Shader* shader, RenderContext& renderContext);
+	void SendCameraPosition(Shader* shader, RenderContext& renderContext);
 
 	Shader* m_lineShader;
 	unsigned int m_lineVBO = -1;

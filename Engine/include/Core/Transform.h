@@ -13,13 +13,19 @@ struct Vector3
 class Transform
 {
 public:
-	Vector3 position;
-	Vector3 rotation;
-	Vector3 scale{ 1.0f, 1.0f, 1.0f };
+	Vector3  position;
+	Vector3  rotation;
+	Vector3  scale{ 1.0f, 1.0f, 1.0f };
 
 	glm::mat4 GetMatrix() const;
+
 	glm::vec3 GetPosition();
+	const glm::vec3 GetPosition() const;
+
 	glm::vec3 GetRotation();
+	const glm::vec3 GetRotation() const;
+
 	glm::vec3 GetScale();
+	const glm::vec3 GetScale() const;
 
 };
