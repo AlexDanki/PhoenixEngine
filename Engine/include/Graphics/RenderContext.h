@@ -1,4 +1,7 @@
 #pragma once
+#include "Viewport.h"
+#include <glm/glm.hpp>
+#include "Camera/ICamera.h"
 
 class Scene;
 class Camera;
@@ -8,7 +11,7 @@ class AmbienteLight;
 struct RenderContext
 {
 	Scene& scene;
-	Camera& camera;
+	ICamera* renderCamera;
 	float aspectRatio;
 	Shader* textShader;
 	int screenWidth;

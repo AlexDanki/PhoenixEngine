@@ -82,7 +82,7 @@ void Renderer::DrawMesh(const Mesh& mesh, Shader* shader)
     glDrawElements(GL_TRIANGLES, mesh.GetIndexCount(), GL_UNSIGNED_INT, nullptr);
 }
 
-void Renderer::DrawScene(RenderContext& renderContext)
+void Renderer::DrawScene(RenderContext& renderContext )
 {
     Fog& fog = renderContext.scene.GetFog();
     for (const auto& gameObject : renderContext.scene.GetGameObjects())
@@ -217,6 +217,7 @@ void Renderer::DrawLine(glm::vec3& start, glm::vec3& end, glm::vec3& color, glm:
     glUniform3f(m_lineShader->GetColorLocation(), color.x, color.y, color.z);
     glBindVertexArray(m_lineVAO);
     glDrawArrays(GL_LINES, 0, 2);
+    
 
 }
 
@@ -224,7 +225,7 @@ void Renderer::DrawTransformGizmos(const GameObject& object, RenderContext& rend
 {
     glm::vec3 position;
     float size = 2.0;
-    glm::mat4 viewProjection = renderContext.scene.GetPrimaryCamera()->GetViewProjection(aspect);
+    glm::mat4 viewProjection = renderContext.renderCamera->GetViewProjection(aspect);
 
     position.x = object.GetTransform().position.x;
     position.y = object.GetTransform().position.y;
@@ -313,10 +314,10 @@ void Renderer::SendModelMatrix(Shader* shader, const GameObject& object)
 
 void Renderer::SendViewProjection(Shader* shader, RenderContext& renderContext, const float aspectRatio)
 {
-    if(auto camera = renderContext.scene.GetPrimaryCamera())
+    if(auto camera = renderContext.renderCamera)
     {
         glUniformMatrix4fv(shader->GetViewProjectionLocation(), 1, GL_FALSE,
-            glm::value_ptr(renderContext.scene.GetPrimaryCamera()->GetViewProjection(aspectRatio)));
+            glm::value_ptr(camera->GetViewProjection(aspectRatio)));
     }
 }
 
@@ -351,5 +352,5 @@ void Renderer::SendFog(Shader* shader, RenderContext& renderContext)
 
 void Renderer::SendCameraPosition(Shader* shader, RenderContext& renderContext)
 {
-    glUniform3fv(shader->GetCameraPositionLocation(), 1, glm::value_ptr(renderContext.scene.GetPrimaryCamera()->GetOwner()->GetTransform().GetPosition()));
+    glUniform3fv(shader->GetCameraPositionLocation(), 1, glm::value_ptr(renderContext.renderCamera->GetPosition()));
 }

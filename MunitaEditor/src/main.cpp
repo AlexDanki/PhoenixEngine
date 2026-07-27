@@ -1,4 +1,4 @@
-#include <Core/EditorAppication.h>
+#include <Core/EditorApplication.h>
 
 int main()
 {

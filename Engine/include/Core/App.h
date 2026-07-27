@@ -15,8 +15,10 @@
 #include "EditorLayer.h"
 #include "PhysicsSystem.h"
 #include "EngineTime.h"
+#include "Viewport.h"
+#include "RenderContext.h"
+#include "Camera/ICamera.h"
 
-struct RenderContext;
 
 class App
 {
@@ -24,7 +26,7 @@ public:
 	~App();
 	void Run();
 	
-	const Scene& GetScene() const { return m_defaultScene; }
+	const Scene* GetScene() const { return m_currentScene; }
 	AssetManager& GetAssetManager() { return m_assetManager; }
 	Mse::Time m_time;
 
@@ -37,6 +39,8 @@ public:
 	void EndFrame();
 	void ShutDown();
 
+	void SetViewport(unsigned int width, unsigned int height);
+
 	GameObject* CreateCube();
 	GameObject* CreatePlane();
 	GameObject* CreateCamera();
@@ -44,6 +48,9 @@ public:
 	GameObject* CreateEmpty();
 
 	GLFWwindow* GetNativeWindow() { return m_window.GetNativeWindow(); }
+	void SetRenderCamera(ICamera* renderCamera) { m_renderCamera = renderCamera; };
+
+	float GetDeltaTime() { return m_time.deltaTime; }
 
 private:
 	bool m_isRunning = true;
@@ -52,13 +59,14 @@ private:
 
 	// Time
 
-	Window m_window{ "Munita", 1280, 720 };
+	Window m_window{ "Munita Source Engine", 1280, 720 };
 	Renderer m_renderer;
 	Scene m_defaultScene;
 	Scene* m_currentScene;
-	Camera m_camera;
+	ICamera* m_renderCamera;
 	AssetManager m_assetManager;
 	PhysicsSystem m_physicsSytem;
+	Viewport m_viewport = { 1280, 720 };
 
 	GameObject* m_player = nullptr;
 	GameObject* m_ground = nullptr;

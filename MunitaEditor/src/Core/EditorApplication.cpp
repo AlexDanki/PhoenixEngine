@@ -1,4 +1,4 @@
-#include <Core/EditorAppication.h>
+#include <Core/EditorApplication.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -10,8 +10,25 @@ void EditorApplication::Initialize()
 	
 	m_engine.Initialize();
 
+	m_editorCamera.GetTransform().position.y = 3;
+	m_editorCamera.GetTransform().position.z = 20;
+
+	// Scene View panel Config
 	m_sceneFramebuffer = std::make_unique<Mse::Framebuffer>(1280, 720);
 	m_sceneViewPanel.SetFramebuffer(m_sceneFramebuffer.get());
+	m_sceneViewPanel.SetApp(&m_engine);
+	m_sceneViewPanel.SetRenderCamera(&m_editorCamera);
+
+	// Game View panel Config
+	m_gameFramebuffer = std::make_unique<Mse::Framebuffer>(1280, 720);
+	m_gameViewPanel.SetFramebuffer(m_gameFramebuffer.get());
+	m_gameViewPanel.SetApp(&m_engine);
+	m_gameViewPanel.SetRenderCamera(m_engine.GetScene()->GetPrimaryCamera());
+
+	m_database.Refresh();
+	m_assetBrowserPanel.SetAssetDatabase(&m_database);
+	m_assetBrowserPanel.SetEditorApplication(this);
+	m_assetBrowserPanel.SetCurrentDiretory(m_database.GetRootDiretory());
 
 	InitializeImGui();
 	
@@ -37,14 +54,14 @@ void EditorApplication::Run()
 		m_engine.Render();
 		m_sceneFramebuffer->Unbind();
 
-
 		StartImGuiFrame();
 
 		// Desenha o Docksapce
 		DrawDockSpace();
 
 		DrawPanels();
-
+		
+		
 		EndImGuiFrame();
 
 		// Finaliza o Frame
@@ -100,8 +117,10 @@ void EditorApplication::DrawPanels()
 	m_hierarchyPanel.Draw();
 	m_inspectorPanel.Draw();
 	m_assetBrowserPanel.Draw();
-	m_sceneViewPanel.Draw();
+	m_editorCamera.Update(m_engine.GetDeltaTime());
 	m_gameViewPanel.Draw();
+	m_sceneViewPanel.Draw();
+	
 }
 
 void EditorApplication::ShutDown()
@@ -154,4 +173,14 @@ void EditorApplication::ShutDownImGui()
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyPlatformWindows();
 	ImGui::DestroyContext();
+}
+
+void EditorApplication::SetCurrentAsset(const mse::AssetEntry* assetEntry)
+{
+	m_currentAsset = assetEntry;
+}
+
+const mse::AssetEntry* EditorApplication::GetCurrentAsset() const
+{
+	return m_currentAsset;
 }

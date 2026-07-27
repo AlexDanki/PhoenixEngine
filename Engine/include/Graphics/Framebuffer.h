@@ -14,11 +14,15 @@ namespace Mse
 		int GetWidth() { return m_width; }
 		int GetHeight() { return m_height; }
 
+		void Resize(int width, int height);
+
 		unsigned int GetColorAttachment() const { return m_colorAttachment; }
 
 	private:
 		unsigned int m_id = 0;
 		unsigned int m_colorAttachment = 0;
+
+		void FrameBufferConfig();
 
 		int m_width = 1280;
 		int m_height = 720;

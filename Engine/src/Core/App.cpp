@@ -7,7 +7,6 @@
 #include "MeshComponent.h"
 #include "BoxCollider.h" 
 #include "memory"
-#include "RenderContext.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -196,19 +195,22 @@ void App::FixedUpdate(float dt)
 
 void App::Render()
 {
-	float aspect = static_cast<float>(m_window.GetWidth()) / static_cast<float>(m_window.GetHeight());
-
+	//float aspect = static_cast<float>(m_window.GetWidth()) / static_cast<float>(m_window.GetHeight());
+	//float aspect = static_cast<float>(m_window.GetWidth()) / static_cast<float>(m_window.GetHeight());
 
 	RenderContext renderContext{
 		*m_currentScene,
-		m_camera,
-		aspect,
+		m_renderCamera,
+		m_viewport.aspect,
 		m_textShader,
 		m_window.GetWidth(),
 		m_window.GetHeight()
 	};
 
 	m_renderer.Clear();
+
+	const int quantLines = 500;
+	m_renderer.DrawWorldGrid(quantLines, renderContext.renderCamera->GetViewProjection(m_viewport.aspect));
 
 	m_renderer.DrawScene(renderContext);
 
@@ -232,10 +234,11 @@ void App::Render()
 			}*/
 
 			// Draw World Grid
-	const int quantLines = 500;
-	m_renderer.DrawWorldGrid(quantLines, m_currentScene->GetPrimaryCamera()->GetViewProjection(aspect));
+}
 
-	
+void App::SetViewport(unsigned int width, unsigned int height)
+{
+	m_viewport = { width, height };
 }
 
 void App::ShutDown()
@@ -497,6 +500,7 @@ void App::CreateDefaultScene()
 	m_player = CreateEmpty();
 	//m_editorLayer.SetSelectedObject(m_player);
 	m_mainCamera = CreateCamera();
+	m_renderCamera = m_mainCamera->GetComponent<CameraComponent>();
 	//m_mainCamera->AddComponent(std::make_unique<RotatorScript>());
 	//m_mainCamera = CreateGameObject("Main_Cam", ObjectType::Camera, "Models/Paddle.fbx" , "Textures/PaddleTex.png", *m_paddleMaterial);
 	//m_editorLayer.SetSelectedObject(m_mainCamera);
